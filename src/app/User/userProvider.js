@@ -2,8 +2,25 @@ const { pool } = require("../../../config/database");
 const { logger } = require("../../../config/winston");
 
 const userDao = require("./userDao");
+const {errResponse, response} = require("../../../config/response");
+const baseResponse = require("../../../config/baseResponseStatus");
 
 // Provider: Read 비즈니스 로직 처리
+
+
+//닉네임 중복 체크
+exports.nicknameCheck = async function (nickname) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  const accountRows = await userDao.selectNickname(connection, nickname);
+  if (accountRows.isRedundant == 1){
+    connection.release();
+    return errResponse(baseResponse.SIGNUP_REDUNDANT_NICKNAME);
+  }
+
+  connection.release();
+  return response(baseResponse.SUCCESS, "사용 가능한 닉네임 입니다.");
+}
 
 
 exports.accountNameCheck = async function (accountName) {

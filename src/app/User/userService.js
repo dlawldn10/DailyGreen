@@ -13,47 +13,67 @@ const {connect} = require("http2");
 
 // Service: Create, Update, Delete 비즈니스 로직 처리
 
-exports.createUser = async function (fbAccessToken, accountName, password, name) {
+
+
+
+exports.createUser = async function (userInfo, accessTokenInfo) {
     const connection = await pool.getConnection(async (conn) => conn);
 
     try {
 
-        // 계정명 중복 확인
-        const accountRows = await userProvider.accountNameCheck(accountName);
-        if (accountRows.length > 0)
-            return errResponse(baseResponse.SIGNUP_REDUNDANT_ACCOUNTNAME);
-
-        // 비밀번호 암호화
-        const hashedPassword = await crypto
-            .createHash("sha512")
-            .update(password)
-            .digest("hex");
+        // // 비밀번호 암호화
+        // const hashedPassword = await crypto
+        //     .createHash("sha512")
+        //     .update(password)
+        //     .digest("hex");
 
 
         await connection.beginTransaction();
 
-        const insertUserResult = await userDao.insertUserInfo(connection, fbAccessToken);
 
-        const insertAccountInfoParams = [insertUserResult[0].insertId, accountName, hashedPassword, name, 'http://poomasi.pushweb.kr/common/img/default_profile.png'];
+        //유저 정보 삽입
+        const insertUserResult = await userDao.insertUserInfo(connection, userInfo);
 
+
+
+        //유저 인덱스, 액세스 토큰 인덱스, 계정 구분(네이버/카카오/애플), 이메일(임시), 비밀번호(임시), 휴대폰 번호(임시)
+        const insertAccountInfoParams = [
+            insertUserResult[0].insertId,
+            accessTokenInfo.sort,
+            accessTokenInfo.email,
+            'tmpPassword',
+            '00000000000'
+        ];
+
+        //계정 삽입
         const insertAccountResult = await userDao.insertAccountInfo(connection, insertAccountInfoParams);
-        const findAccountIdxResult = await userDao.selectAccountIdxByAccountName(connection, accountName);
 
-        const insertFollowResult = await userDao.insertFollows(connection, findAccountIdxResult[0].accountIdx, findAccountIdxResult[0].accountIdx);
+
+        //나를 팔로우 하도록 삽입
+        const insertFollowResult = await userDao.insertFollows(connection, insertAccountResult[0].insertId, insertAccountResult[0].insertId);
 
         await connection.commit();
 
-        return response(baseResponse.SUCCESS);
+        return response(baseResponse.SUCCESS, {
+            'userIdx': insertUserResult[0].insertId,
+            'accountIdx': insertAccountResult[0].insertId,
+        });
+
+        // return response(baseResponse.SUCCESS);
 
 
     } catch (err) {
+
         await connection.rollback();
         logger.error(`App - createUser Service error\n: ${err.message}`);
         return errResponse(baseResponse.DB_ERROR);
+
     }finally {
         connection.release();
     }
 };
+
+
 
 
 exports.postSignIn = async function (accountName, password) {

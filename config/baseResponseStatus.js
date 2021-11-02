@@ -11,13 +11,26 @@ module.exports = {
 
 
     //Request error
-    SIGNUP_ACCESSTOKEN_EMPTY : { "isSuccess": false, "code": 2001, "message":"액세스 토큰을 입력해주세요" },
-    SIGNUP_ACCOUNTNAME_EMPTY : { "isSuccess": false, "code": 2002, "message":"계정명을 입력해주세요" },
-    SIGNUP_PASSWORD_EMPTY : { "isSuccess": false, "code": 2003, "message":"비밀번호를 입력해주세요" },
-    SIGNUP_NAME_EMPTY : { "isSuccess": false, "code": 2004, "message":"이름을 입력해주세요" },
+    SIGNUP_APPLE_ACCESSTOKEN_EMPTY : { "isSuccess": false, "code": 2001, "message":"애플 액세스 토큰을(를) 입력해주세요" },
+    SIGNUP_KAKAO_ACCESSTOKEN_EMPTY : { "isSuccess": false, "code": 2002, "message":"카카오 액세스 토큰을(를) 입력해주세요" },
+    SIGNUP_NAVER_ACCESSTOKEN_EMPTY : { "isSuccess": false, "code": 2003, "message":"네이버 액세스 토큰을(를) 입력해주세요" },
 
-    SIGNUP_REDUNDANT_ACCOUNTNAME : { "isSuccess": false, "code": 2005, "message":"중복된 계정명입니다." },
-    SIGNUP_ACCOUNTNAME_LENGTH : { "isSuccess": false, "code": 2006, "message":"계정명은 30자리 미만으로 입력해주세요" },
+    SIGNUP_PROFILEPHOTO_EMPTY : { "isSuccess": false, "code": 2004, "message":"프로필 사진을(를) 등록해주세요" },
+    SIGNUP_NICKNAME_EMPTY : { "isSuccess": false, "code": 2005, "message":"닉네임을(를) 등록해주세요" },
+    SIGNUP_BIO_EMPTY : { "isSuccess": false, "code": 2006, "message":"자기소개를(를) 등록해주세요" },
+
+    SIGNUP_REDUNDANT_NICKNAME : { "isSuccess": false, "code": 2007, "message":"중복된 닉네임입니다." },
+    SIGNUP_NICKNAME_LENGTH : { "isSuccess": false, "code": 2008, "message":"닉네임은 9자리 미만으로 입력해주세요." },
+    SIGNUP_ACCESSTOKEN_EMPTY : { "isSuccess": false, "code": 2009, "message":"액세스 토큰을(를) 입력해주세요" },
+    SIGNUP_REDUNDANT_ACCESSTOKEN : { "isSuccess": false, "code": 2010, "message":"이미 가입한 회원입니다." },
+    SIGNUP_SORT_EMPTY : { "isSuccess": false, "code": 2011, "message":"로그인 종류를 입력하세요." },
+    SIGNUP_SORT_WRONG : { "isSuccess": false, "code": 2012, "message":"로그인 종류가 올바르지 않습니다." },
+
+
+    SIGNUP_ORIGIN_NOT_SUPPORTED : { "isSuccess": false, "code": 2013, "message":"현재는 지원하지 않는 기능입니다. 소셜 회원가입을 진행해주세요." },
+
+
+
 
     LOGIN_ACCOUNTNAME_EMPTY : { "isSuccess": false, "code": 2007, "message": "계정명(id)을 입력해주세요." },
     LOGIN_PASSWORD_EMPTY : { "isSuccess": false, "code": 2008, "message": "비밀번호를 입력해주세요." },

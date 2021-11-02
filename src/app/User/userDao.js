@@ -1,41 +1,65 @@
 
 
-// 계정명 중복 확인
-async function selectAccountName(connection, accountName) {
-  const selectAccountNameQuery = `
-    SELECT accountName
-    FROM Accounts
-    WHERE accountName = ?;
+// 닉네임 중복 확인
+async function selectNickname(connection, nickname) {
+  const selectNicknameQuery = `
+    SELECT COUNT(*) as isRedundant FROM Users WHERE nickname = ?;
   `;
-  const [accountRows] = await connection.query(selectAccountNameQuery, accountName);
-  return accountRows;
+  const [accountRows] = await connection.query(selectNicknameQuery, nickname);
+  return accountRows[0];
 };
+
+
+// // 엑세스 토큰 중복 확인
+// async function selectAccessToken(connection, userIdx, sort) {
+//   const selectNicknameQuery = `
+//     SELECT COUNT(case when userIdx = ? AND sort = ? then 1 end ) as isRedundant FROM AccessTokens;
+//   `;
+//   const [accountRows] = await connection.query(selectNicknameQuery, [userIdx, sort]);
+//   return accountRows[0];
+// };
 
 
 
 // 유저 생성
-async function insertUserInfo(connection, fbAccessToken) {
+async function insertUserInfo(connection, userInfo) {
   const insertUserInfoQuery = `
-    INSERT INTO Users(fbAccessToken)
-    VALUES (?);
+    INSERT INTO Users(profilePhotoUrl, nickname, bio)
+    VALUES (?, ?, ?);
   `;
   const insertUserInfoRow = await connection.query(
       insertUserInfoQuery,
-      fbAccessToken
+      [userInfo.profilePhoto, userInfo.nickname, userInfo.bio]
   );
 
   return insertUserInfoRow;
 }
+
+
+// //엑세스 토큰 삽입
+// async function insertAccessTokenInfo(connection, userIdx, accessTokenInfo) {
+//   const insertUserInfoQuery = `
+//     INSERT INTO AccessTokens(userIdx, accessToken, sort)
+//     VALUES (?, ?, ?);
+//   `;
+//   const insertUserInfoRow = await connection.query(
+//       insertUserInfoQuery,
+//       [userIdx, accessTokenInfo.accessToken, accessTokenInfo.sort]
+//   );
+//
+//   return insertUserInfoRow;
+// }
+
 
 //계정 생성
 async function insertAccountInfo(connection, insertAccountInfoParams) {
   const insertUserInfoQuery = `
     INSERT INTO Accounts(
       userIdx,
-      accountName,
+      sort,
+      email,
       password,
-      name,
-      profilePhotoUrl
+      phoneNum
     )
     VALUES (?, ?, ?, ?, ?);
   `;
@@ -63,14 +87,11 @@ async function selectAccountIdxByAccountName(connection, accountName) {
 
 
 
-//나 -나 팔로우 추가
+//팔로우 추가
 async function insertFollows(connection, from, to) {
   console.log(from, to);
   const insertFollowInfoQuery = `
-        INSERT INTO Follows(\`from\`,
-          \`to\`
-           )
-VALUES (?, ?);
+        INSERT INTO UserFollowings( fromUserIdx, toUserIdx) VALUES (?, ?);
 `;
   const insertFollowInfoRow = await connection.query(
       insertFollowInfoQuery,
@@ -144,11 +165,13 @@ module.exports = {
   insertUserInfo,
   selectUserPassword,
   selectUserAccount,
-  selectAccountName,
+  selectNickname,
   insertAccountInfo,
   insertFollows,
   selectAccountIdxByAccountName,
   selectAccountProfile,
   updateAccountProfileInfo
+  // selectAccessToken,
+  // insertAccessTokenInfo
 
 };
