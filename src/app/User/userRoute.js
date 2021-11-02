@@ -27,15 +27,6 @@ module.exports = function(app){
     app.post('/app/login', user.login);
 
 
-    //계정 추가
-    app.post('/app/users/accounts', jwtMiddleware, user.postNewAccount);
-
-
-    //내 프로필 조회
-    app.get('/app/accounts/:accountIdx/profiles', jwtMiddleware, user.getAccountProfile);
-
-    //내 프로필 수정
-    app.patch('/app/accounts/:accountIdx/profiles', jwtMiddleware, user.patchAccountProfile);
 
 
 

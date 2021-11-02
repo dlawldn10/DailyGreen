@@ -23,40 +23,22 @@ exports.nicknameCheck = async function (nickname) {
 }
 
 
-exports.accountNameCheck = async function (accountName) {
-  const connection = await pool.getConnection(async (conn) => conn);
-  const accountNameCheckResult = await userDao.selectAccountName(connection, accountName);
-  connection.release();
-
-  return accountNameCheckResult;
-};
-
-
-
-exports.passwordCheck = async function (selectUserPasswordParams) {
-  const connection = await pool.getConnection(async (conn) => conn);
-  const passwordCheckResult = await userDao.selectUserPassword(
-      connection,
-      selectUserPasswordParams
-  );
-  connection.release();
-  return passwordCheckResult[0];
-};
 
 //계정 상태 체크
-exports.accountCheck = async function (email) {
+exports.accountCheck = async function (userIdx, accountIdx) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const userAccountResult = await userDao.selectUserAccount(connection, email);
+  const userAccountResult = await userDao.selectUserAccount(connection, userIdx, accountIdx);
   connection.release();
 
   return userAccountResult;
 };
 
 
-//프로필 조회
-exports.retrieveAccountProfile = async function (accountIdx) {
+
+//간단 유저정보 조회 = 프사, 닉네임
+exports.retrieveUserProfile = async function (userIdx) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const userAccountResult = await userDao.selectAccountProfile(connection, accountIdx);
+  const userAccountResult = await userDao.selectSimpleUserProfile(connection, userIdx);
   connection.release();
 
   return userAccountResult;

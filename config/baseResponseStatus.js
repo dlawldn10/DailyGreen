@@ -26,16 +26,14 @@ module.exports = {
     SIGNUP_SORT_EMPTY : { "isSuccess": false, "code": 2011, "message":"로그인 종류를 입력하세요." },
     SIGNUP_SORT_WRONG : { "isSuccess": false, "code": 2012, "message":"로그인 종류가 올바르지 않습니다." },
 
-
     SIGNUP_ORIGIN_NOT_SUPPORTED : { "isSuccess": false, "code": 2013, "message":"현재는 지원하지 않는 기능입니다. 소셜 회원가입을 진행해주세요." },
 
 
 
+    ACCOUNTIDX_EMPTY : { "isSuccess": false, "code": 2014, "message": "accountIdx를 인식할 수 없습니다." },
+    USERIDX_EMPTY : { "isSuccess": false, "code": 2015, "message": "userIdx를 인식할 수 없습니다." },
 
-    LOGIN_ACCOUNTNAME_EMPTY : { "isSuccess": false, "code": 2007, "message": "계정명(id)을 입력해주세요." },
-    LOGIN_PASSWORD_EMPTY : { "isSuccess": false, "code": 2008, "message": "비밀번호를 입력해주세요." },
 
-    ACCOUNTIDX_EMPTY : { "isSuccess": false, "code": 2009, "message": "accountIdx를 인식할 수 없습니다." },
     STORYIDX_EMPTY : { "isSuccess": false, "code": 2010, "message": "storyIdx를 인식할 수 없습니다." },
     POSTIDX_EMPTY : { "isSuccess": false, "code": 2011, "message": "postIdx를 인식할 수 없습니다." },
     POST_PHOTOLIST_EMPTY : { "isSuccess": false, "code": 2012, "message": "postPhotoList를 인식할 수 없습니다." },
@@ -61,6 +59,7 @@ module.exports = {
     SIGNIN_PASSWORD_WRONG : { "isSuccess": false, "code": 3004, "message": "비밀번호가 잘못 되었습니다." },
     SIGNIN_INACTIVE_ACCOUNT : { "isSuccess": false, "code": 3005, "message": "비활성화 된 계정입니다. 고객센터에 문의해주세요." },
     SIGNIN_WITHDRAWAL_ACCOUNT : { "isSuccess": false, "code": 3006, "message": "탈퇴 된 계정입니다. 고객센터에 문의해주세요." },
+    ACCOUNT_NOT_EXIST : { "isSuccess": false, "code": 3007, "message": "존재하지 않는 계정입니다." },
 
     //Connection, Transaction 등의 서버 오류
     DB_ERROR : { "isSuccess": false, "code": 4000, "message": "데이터 베이스 에러"},
