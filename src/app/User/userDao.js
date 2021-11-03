@@ -66,14 +66,14 @@ async function insertFollows(connection, from, to) {
 
 
 // 유저 계정 상태 체크
-async function selectUserAccount(connection, userIdx, accountIdx) {
+async function selectUserAccount(connection, accountInfoRowParams) {
   const selectUserAccountQuery = `
-        SELECT status
+        SELECT status, userIdx, accountIdx
         FROM Accounts 
-        WHERE userIdx = ? AND accountIdx = ?;`;
+        WHERE sort = ? AND email = ?;`;
   const selectUserAccountRow = await connection.query(
       selectUserAccountQuery,
-      [userIdx, accountIdx]
+      accountInfoRowParams
   );
 
   return selectUserAccountRow[0];

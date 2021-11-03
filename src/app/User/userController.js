@@ -56,12 +56,8 @@ const firebaseAdmin = admin.initializeApp({
 //
 // }
 
-/**
- * API No. 1
- * API Name : 유저 생성 (회원가입) API
- * [POST] /app/users
- */
-exports.postUsers = async function (req ,res) {
+//카카오 회원가입
+exports.postKaKaoUsers = async function (req ,res) {
 
     //소셜 아이디 회원가입인 경우
     //1. 일단 req.body 데이터를 모두 받고
@@ -73,16 +69,14 @@ exports.postUsers = async function (req ,res) {
     //-> 별도 서비스 함수 만드는게 나을 듯 함.
     //이메일, 비밀번호, 전화번호 추가. accesstoken 없음.
 
-    //sort를 보고 판단한다.
-    //1. 'apple', 'kakao', 'naver' 인 경우는 소셜 회원가입.
-    //2. 'origin'인 경우 자체 회원가입
-
-    const signUpSort = req.body.sort;
-
     const userInfo = {
         profilePhoto: req.file,
         nickname: req.body.nickname,
         bio: req.body.bio
+    }
+
+    const accessTokenInfo = {
+        accessToken : req.body.accessToken
     }
 
 
@@ -91,107 +85,77 @@ exports.postUsers = async function (req ,res) {
         return res.send(response(baseResponse.SIGNUP_NICKNAME_EMPTY));
     else if (!userInfo.bio)
         return res.send(response(baseResponse.SIGNUP_BIO_EMPTY));
-    else if (!signUpSort)
-        return res.send(response(baseResponse.SIGNUP_SORT_EMPTY));
+    else if (!accessTokenInfo.accessToken)
+        return res.send(response(baseResponse.SIGNUP_ACCESSTOKEN_EMPTY));
 
 
 
-    if(signUpSort == 'origin'){
-
-        return res.send(response(baseResponse.SIGNUP_ORIGIN_NOT_SUPPORTED));
-
-    }else if(signUpSort == 'kakao' || signUpSort == 'apple' || signUpSort == 'naver') {
-
-        const accessTokenInfo = {
-            accessToken : req.body.accessToken,
-            sort: signUpSort
+    //카카오 로그인 -> 이메일 가져오기
+    request.get({
+        url: "https://kapi.kakao.com/v2/user/me",
+        headers: {
+            Authorization: `Bearer ${accessTokenInfo.accessToken}`
         }
-
-        //빈값체크 추가
-        if (!accessTokenInfo.accessToken)
-            return res.send(response(baseResponse.SIGNUP_ACCESSTOKEN_EMPTY));
-
-        if(signUpSort == 'kakao'){
-            //카카오 로그인 -> 이메일 가져오기
-            request.get({
-                url: "https://kapi.kakao.com/v2/user/me",
-                headers: {
-                    Authorization: `Bearer ${accessTokenInfo.accessToken}`
+    }, async (err, response, body) => {
+        if(err != null){
+            return res.send(baseResponse.KAKAO_LOGIN_ERROR, {
+                    alert: err
                 }
-            }, async (err, response, body) => {
-                const result = JSON.parse(body);
-                const userEmail = {
-                    email: result.kakao_account.email
-                }
-                // return res.send(result.kakao_account.email);
-                Object.assign(accessTokenInfo, userEmail);
-                // console.log(accessTokenInfo);
-                // return res.send(accessTokenInfo);
-            });
+            );
 
-        }else if(signUpSort == 'apple'){
-            //애플 로그인
+        }else {
+            const result = JSON.parse(body);
             const userEmail = {
-                email: "tmp@icloud.com"
-            }
-            Object.assign(accessTokenInfo, userEmail);
-
-        }else if(signUpSort == 'naver'){
-            //네이버 로그인
-            const userEmail = {
-                email: "tmp@naver.com"
+                email: result.kakao_account.email
             }
             Object.assign(accessTokenInfo, userEmail);
         }
+    });
 
 
-        //프사 설정
-        if (!userInfo.profilePhoto){
-            //기본 프사로 설정하겠다.
-            userInfo.profilePhoto = '기본 프사 url';
+    //프사 설정
+    if (!userInfo.profilePhoto){
+        //기본 프사로 설정하겠다.
+        userInfo.profilePhoto = '기본 프사 url';
 
-            const signUpResponse = await userService.createUser(userInfo, accessTokenInfo);
-            return res.send(signUpResponse);
-
-        }else{
-            //새로운 프사로 설정한다.
-
-            //사진 업로드
-            const bufferStream = new stream.PassThrough();
-            bufferStream.end(new Buffer.from(userInfo.profilePhoto.buffer, 'ascii'));
-            const fileName = Date.now();
-            const file = firebaseAdmin.storage().bucket().file('Users/ProfileImage/' + fileName);
-
-            bufferStream.pipe(file.createWriteStream({
-
-                metadata: {contentType: userInfo.profilePhoto.mimetype}
-
-            })).on('error', (eer) => {
-
-                console.log(eer);
-
-            }).on('finish', () => {
-
-                console.log(fileName + " finish");
-                //업로드한 사진 url다운
-                const config = {action: "read", expires: '03-17-2030'};
-                file.getSignedUrl(config,
-                    async (err, url) => {
-                        if (err) {
-                            console.log(err);
-                        }
-                        // console.log(url);
-                        userInfo.profilePhoto = url;
-                        const signUpResponse = await userService.createUser(userInfo, accessTokenInfo);
-                        return res.send(signUpResponse);
-                    });
-            });
-
-
-        }
+        const signUpResponse = await userService.createUser('kakao', userInfo, accessTokenInfo);
+        return res.send(signUpResponse);
 
     }else{
-        return res.send(response(baseResponse.SIGNUP_SORT_WRONG));
+        //새로운 프사로 설정한다.
+
+        //사진 업로드
+        const bufferStream = new stream.PassThrough();
+        bufferStream.end(new Buffer.from(userInfo.profilePhoto.buffer, 'ascii'));
+        const fileName = Date.now();
+        const file = firebaseAdmin.storage().bucket().file('Users/ProfileImage/' + fileName);
+
+        bufferStream.pipe(file.createWriteStream({
+
+            metadata: {contentType: userInfo.profilePhoto.mimetype}
+
+        })).on('error', (eer) => {
+
+            console.log(eer);
+
+        }).on('finish', () => {
+
+            console.log(fileName + " finish");
+            //업로드한 사진 url다운
+            const config = {action: "read", expires: '03-17-2030'};
+            file.getSignedUrl(config,
+                async (err, url) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    // console.log(url);
+                    userInfo.profilePhoto = url;
+                    const signUpResponse = await userService.createUser('kakao', userInfo, accessTokenInfo);
+                    return res.send(signUpResponse);
+                });
+        });
+
+
     }
 
 };
@@ -215,29 +179,45 @@ exports.postNicknameCheck = async function (req, res) {
 };
 
 
-/**
- * API No. 2
- * API Name : 로그인 API
- * [POST] /app/login
- * body : email, passsword
- */
-exports.login = async function (req, res) {
+//카카오 로그인
+exports.kakaoLogin = async function (req, res) {
 
-    console.log(req.body);
-
-    const userIdx = req.body.userIdx;
-    const accountIdx = req.body.accountIdx;
+    const accessTokenInfo = {
+        accessToken : req.body.accessToken
+    }
 
     // 빈 값 체크
-    if (!userIdx)
-        return res.send(response(baseResponse.USERIDX_EMPTY));
-    else if(!accountIdx)
-        return res.send(response(baseResponse.ACCOUNTIDX_EMPTY));
+    if (!accessTokenInfo.accessToken)
+        return res.send(response(baseResponse.SIGNUP_ACCESSTOKEN_EMPTY));
+
+    //카카오 로그인 -> 이메일 가져오기
+    request.get({
+        url: "https://kapi.kakao.com/v2/user/me",
+        headers: {
+            Authorization: `Bearer ${accessTokenInfo.accessToken}`
+        }
+    }, async (err, response, body) => {
+        if(err != null){
+            return res.send(baseResponse.KAKAO_LOGIN_ERROR, {
+                    alert: err
+                }
+            );
+
+        }else{
+
+            const result = JSON.parse(body);
+            const userEmail = {
+                email: result.kakao_account.email
+            }
+            Object.assign(accessTokenInfo, userEmail);
+            const logInResponse = await userService.postKakaoSignIn(accessTokenInfo);
+            return res.send(logInResponse);
+
+        }
+
+    });
 
 
-    const logInResponse = await userService.postSignIn(userIdx, accountIdx);
-
-    return res.send(logInResponse);
 };
 
 

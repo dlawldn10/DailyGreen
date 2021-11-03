@@ -17,14 +17,18 @@ module.exports = function(app){
     //회원 가입 전 닉네임 중복 검사
     app.post('/app/users/nicknames', user.postNicknameCheck);
 
-    // 유저 생성 (회원가입) API
-    app.post('/app/users', upload.single('profilePhoto'), user.postUsers);
+    //회원가입을 나누자
+
+    // 1. 카카오 로그인 시도 후
+    app.post('/app/login/kakao', user.kakaoLogin);
+    // 2. 존재하지 않는 계정이면 카카오 계정으로 회원가입
+    app.post('/app/users/kakao', upload.single('profilePhoto'), user.postKaKaoUsers);
 
 
 
 
-    // 로그인 하기 API (JWT 생성)
-    app.post('/app/login', user.login);
+
+
 
 
 

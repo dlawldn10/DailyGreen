@@ -25,9 +25,9 @@ exports.nicknameCheck = async function (nickname) {
 
 
 //계정 상태 체크
-exports.accountCheck = async function (userIdx, accountIdx) {
+exports.accountCheck = async function (accountInfoRowParams) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const userAccountResult = await userDao.selectUserAccount(connection, userIdx, accountIdx);
+  const userAccountResult = await userDao.selectUserAccount(connection, accountInfoRowParams);
   connection.release();
 
   return userAccountResult;

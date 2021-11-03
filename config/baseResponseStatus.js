@@ -22,7 +22,7 @@ module.exports = {
     SIGNUP_REDUNDANT_NICKNAME : { "isSuccess": false, "code": 2007, "message":"중복된 닉네임입니다." },
     SIGNUP_NICKNAME_LENGTH : { "isSuccess": false, "code": 2008, "message":"닉네임은 9자리 미만으로 입력해주세요." },
     SIGNUP_ACCESSTOKEN_EMPTY : { "isSuccess": false, "code": 2009, "message":"액세스 토큰을(를) 입력해주세요" },
-    SIGNUP_REDUNDANT_ACCESSTOKEN : { "isSuccess": false, "code": 2010, "message":"이미 가입한 회원입니다." },
+    SIGNUP_REDUNDANT_ACCESSTOKEN : { "isSuccess": false, "code": 2010, "message":"이미 가입된 회원입니다." },
     SIGNUP_SORT_EMPTY : { "isSuccess": false, "code": 2011, "message":"로그인 종류를 입력하세요." },
     SIGNUP_SORT_WRONG : { "isSuccess": false, "code": 2012, "message":"로그인 종류가 올바르지 않습니다." },
 
@@ -30,8 +30,11 @@ module.exports = {
 
 
 
-    ACCOUNTIDX_EMPTY : { "isSuccess": false, "code": 2014, "message": "accountIdx를 인식할 수 없습니다." },
-    USERIDX_EMPTY : { "isSuccess": false, "code": 2015, "message": "userIdx를 인식할 수 없습니다." },
+    ACCOUNTIDX_EMPTY : { "isSuccess": false, "code": 2014, "message": "accountIdx을(를) 입력해주세요." },
+    USERIDX_EMPTY : { "isSuccess": false, "code": 2015, "message": "userIdx을(를) 입력해주세요." },
+    COMMUNITYIDX_EMPTY : { "isSuccess": false, "code": 2016, "message": "communityIdx을(를) 입력해주세요." },
+
+
 
 
     STORYIDX_EMPTY : { "isSuccess": false, "code": 2010, "message": "storyIdx를 인식할 수 없습니다." },
@@ -59,7 +62,9 @@ module.exports = {
     SIGNIN_PASSWORD_WRONG : { "isSuccess": false, "code": 3004, "message": "비밀번호가 잘못 되었습니다." },
     SIGNIN_INACTIVE_ACCOUNT : { "isSuccess": false, "code": 3005, "message": "비활성화 된 계정입니다. 고객센터에 문의해주세요." },
     SIGNIN_WITHDRAWAL_ACCOUNT : { "isSuccess": false, "code": 3006, "message": "탈퇴 된 계정입니다. 고객센터에 문의해주세요." },
-    ACCOUNT_NOT_EXIST : { "isSuccess": false, "code": 3007, "message": "존재하지 않는 계정입니다." },
+    ACCOUNT_NOT_EXIST : { "isSuccess": false, "code": 3007, "message": "존재하지 않는 계정입니다. 회원가입을 진행해 주세요" },
+    ACCOUNT_ALREADY_EXIST : { "isSuccess": false, "code": 3009, "message": "이미 존재하는 계정입니다. 로그인을 진행해주세요." },
+    KAKAO_LOGIN_ERROR : { "isSuccess": false, "code": 3008, "message": "카카오 액세스 에러" },
 
     //Connection, Transaction 등의 서버 오류
     DB_ERROR : { "isSuccess": false, "code": 4000, "message": "데이터 베이스 에러"},
