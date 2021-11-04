@@ -97,6 +97,25 @@ async function selectSimpleUserProfile(connection, userIdx) {
 };
 
 
+// 가장 가까운 날 주최되는 이벤트(모임, 워크샵) 가져오기
+async function selectCloseEvents(connection, userIdx) {
+  const selectUserAccountQuery = `
+        SELECT nickname, profilePhotoUrl
+        FROM Users 
+        WHERE userIdx = ?;
+        `;
+  const selectUserAccountRow = await connection.query(
+      selectUserAccountQuery,
+      userIdx
+  );
+  return selectUserAccountRow[0];
+
+};
+
+
+
+
+
 
 
 
@@ -107,6 +126,7 @@ module.exports = {
   selectNickname,
   insertAccountInfo,
   insertFollows,
-  selectSimpleUserProfile
+  selectSimpleUserProfile,
+  selectCloseEvents
 
 };

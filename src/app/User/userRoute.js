@@ -25,12 +25,8 @@ module.exports = function(app){
     app.post('/app/users/kakao', upload.single('profilePhoto'), user.postKaKaoUsers);
 
 
-
-
-
-
-
-
+    // //홈화면 - 이벤트 배너
+    // app.get('/app/users/events', user.getEvents);
 
 
 

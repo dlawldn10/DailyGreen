@@ -221,6 +221,27 @@ exports.kakaoLogin = async function (req, res) {
 };
 
 
+//홈화면 - 이벤트 배너
+exports.getEvents = async function (req, res) {
+
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    // 빈 값 체크
+    if (!userIdxFromJWT)
+        return res.send(response(baseResponse.TOKEN_VERIFICATION_FAILURE));
+
+    const retrieveEventsResponse = await userProvider.retrieveEvents(userIdxFromJWT);
+    return res.send(retrieveEventsResponse);
+
+
+};
+
+
+
+
+
+
+
 
 /** JWT 토큰 검증 API
  * [GET] /app/auto-login
