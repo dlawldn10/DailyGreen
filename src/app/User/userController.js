@@ -16,45 +16,16 @@ const stream = require('stream');
 const serviceAccount = require('../../../dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json');
 const request = require("request");
 
-const firebaseAdmin = admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    storageBucket: 'dailygreen-6e49d.appspot.com'
-});
 
+let firebaseAdmin;
+if (!admin.apps.length) {
+    firebaseAdmin = admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        storageBucket: 'dailygreen-6e49d.appspot.com'
+    });
+}
 
-// exports.imageTestPost = async function (req, res) {
-//
-//     console.log(req.body.test);
-//     var image = req.file;
-//     var bufferStream = new stream.PassThrough();
-//     bufferStream.end(new Buffer.from(image.buffer, 'ascii'));
-//     var fileName = image.originalname;
-//     let file = firebaseAdmin.storage().bucket().file(fileName);
-//     bufferStream.pipe(file.createWriteStream({
-//         metadata:{ contentType: image.mimetype }
-//     })).on('error', (eer) => {
-//         console.log(eer);
-//     }).on('finish', () => {
-//         console.log(fileName + " finish");
-//         res.redirect('download?imgName=' + image.originalname);
-//     });
-//
-// }
-//
-// exports.imageTestGet = async function (req, res) {
-//     var imgName = req.query.imgName;
-//     var file = firebaseAdmin.storage().bucket().file(imgName);
-//     const config = { action: "read", expires: '03-17-2030' };
-//     file.getSignedUrl(config,
-//         (err, url) => {
-//             if (err) {
-//                 console.log(err);
-//             }
-//             console.log(url);
-//             return res.send(response(baseResponse.SUCCESS));
-//         });
-//
-// }
+// res.redirect('download?imgName=' + image.originalname);
 
 //카카오 회원가입
 exports.postKaKaoUsers = async function (req ,res) {
@@ -128,6 +99,7 @@ exports.postKaKaoUsers = async function (req ,res) {
         const bufferStream = new stream.PassThrough();
         bufferStream.end(new Buffer.from(userInfo.profilePhoto.buffer, 'ascii'));
         const fileName = Date.now();
+
         const file = firebaseAdmin.storage().bucket().file('Users/ProfileImage/' + fileName);
 
         bufferStream.pipe(file.createWriteStream({

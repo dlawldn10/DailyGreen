@@ -27,9 +27,7 @@ exports.createCommunityFollow = async function (userIdxFromJWT, communityIdx) {
         await connection.commit();
         connection.release();
 
-        return response(baseResponse.SUCCESS, {
-            alert : `${selectCommunityRow.communityName} 커뮤니티에 참여하였습니다.`
-        });
+        return response(baseResponse.COMMUNITY_FOLLOW_SUCCESS);
     }
     else if (selectFollowRow.status === "DELETED") {
         //취소했었던 기록이 있다면 -> ACTIVE로 수정
@@ -38,17 +36,13 @@ exports.createCommunityFollow = async function (userIdxFromJWT, communityIdx) {
         await connection.commit();
         connection.release();
 
-        return response(baseResponse.SUCCESS, {
-            alert : `${selectCommunityRow.communityName} 커뮤니티에 참여하였습니다.`
-        });
+        return response(baseResponse.COMMUNITY_FOLLOW_SUCCESS);
     }
     else if (selectFollowRow.status === "ACTIVE") {
         //이미 팔로우 중이라면
 
         connection.release();
-        return response(baseResponse.SUCCESS, {
-            alert : `이미 해당 커뮤니티에 참여중입니다.`
-        });
+        return response(baseResponse.COMMUNITY_FOLLOW_ERROR);
     }
 
 
@@ -69,9 +63,7 @@ exports.updateCommunityFollow = async function (userIdxFromJWT, communityIdx) {
     if(selectFollowRow === undefined){
         //팔로우 했던 적도 없을때
         connection.release();
-        return response(baseResponse.SUCCESS, {
-            alert : `해당 커뮤니티에 참여한 기록이 없습니다.`
-        });
+        return response(baseResponse.COMMUNITY_UNFOLLOW_ERROR);
     }
     else if (selectFollowRow.status === "ACTIVE") {
         //추가했었던 기록이 있다면 -> DELETED로 수정
@@ -80,17 +72,13 @@ exports.updateCommunityFollow = async function (userIdxFromJWT, communityIdx) {
         await connection.commit();
         connection.release();
 
-        return response(baseResponse.SUCCESS, {
-            alert : `${selectCommunityRow.communityName} 커뮤니티 참여를 취소하였습니다.`
-        });
+        return response(baseResponse.COMMUNITY_UNFOLLOW_SUCCESS);
     }
     else if (selectFollowRow.status === "DELETED") {
         //이미 구독 안하고있는 상태라면
 
         connection.release();
-        return response(baseResponse.SUCCESS, {
-            alert : `이미 참여 취소되었습니다.`
-        });
+        return response(baseResponse.COMMUNITY_UNFOLLOW_ERROR);
     }
 
 

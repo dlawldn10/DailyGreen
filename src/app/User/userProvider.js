@@ -19,7 +19,8 @@ exports.nicknameCheck = async function (nickname) {
   }
 
   connection.release();
-  return response(baseResponse.SUCCESS, "사용 가능한 닉네임 입니다.");
+  return response(baseResponse.NICKNAME_VERIFICATION_SUCCESS);
+
 }
 
 

@@ -26,42 +26,46 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
         const accountInfoRowParams = [sort, accessTokenInfo.email];
         const accountInfoRows = await userProvider.accountCheck(accountInfoRowParams);
 
-        if (accountInfoRows[0].status === "INACTIVE") {
+        if(accountInfoRows[0].status === undefined) {
+
+
+            console.log("테스트");
+            //유저 정보 삽입
+            const insertUserResult = await userDao.insertUserInfo(connection, userInfo);
+
+            //유저 인덱스, 액세스 토큰 인덱스, 계정 구분(네이버/카카오/애플), 이메일(임시), 비밀번호(임시), 휴대폰 번호(임시)
+            const insertAccountInfoParams = [
+                insertUserResult[0].insertId,
+                sort,
+                accessTokenInfo.email,
+                'tmpPassword',
+                '00000000000'
+            ];
+
+            //계정 삽입
+            const insertAccountResult = await userDao.insertAccountInfo(connection, insertAccountInfoParams);
+
+            //나를 팔로우 하도록 삽입
+            const insertFollowResult = await userDao.insertFollows(connection, insertAccountResult[0].insertId, insertAccountResult[0].insertId);
+
+            await connection.commit();
+
+            return response(baseResponse.SUCCESS, {
+                'userIdx': insertUserResult[0].insertId,
+                'accountIdx': insertAccountResult[0].insertId
+            });
+
+        }else if (accountInfoRows[0].status === "INACTIVE") {
             return errResponse(baseResponse.SIGNIN_INACTIVE_ACCOUNT);
         }
         else if (accountInfoRows[0].status === "DELETED") {
             return errResponse(baseResponse.SIGNIN_WITHDRAWAL_ACCOUNT);
         }
-        else if(accountInfoRows[0].status === "ACTIVE"){
+        else if(accountInfoRows[0].status === "ACTIVE") {
             return errResponse(baseResponse.ACCOUNT_ALREADY_EXIST);
         }
 
-        //유저 정보 삽입
-        const insertUserResult = await userDao.insertUserInfo(connection, userInfo);
-
-        //유저 인덱스, 액세스 토큰 인덱스, 계정 구분(네이버/카카오/애플), 이메일(임시), 비밀번호(임시), 휴대폰 번호(임시)
-        const insertAccountInfoParams = [
-            insertUserResult[0].insertId,
-            sort,
-            accessTokenInfo.email,
-            'tmpPassword',
-            '00000000000'
-        ];
-
-        //계정 삽입
-        const insertAccountResult = await userDao.insertAccountInfo(connection, insertAccountInfoParams);
-
-        //나를 팔로우 하도록 삽입
-        const insertFollowResult = await userDao.insertFollows(connection, insertAccountResult[0].insertId, insertAccountResult[0].insertId);
-
-        await connection.commit();
-
-        return response(baseResponse.SUCCESS, {
-            'userIdx': insertUserResult[0].insertId,
-            'accountIdx': insertAccountResult[0].insertId
-        });
-
-        // return response(baseResponse.SUCCESS);
+            // return response(baseResponse.SUCCESS);
 
 
     } catch (err) {

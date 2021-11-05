@@ -1,13 +1,11 @@
-const jwtMiddleware = require("../../../config/jwtMiddleware");
+
 const communityProvider = require("../../app/Community/communityProvider");
 const communityService = require("../../app/Community/communityService");
 const baseResponse = require("../../../config/baseResponseStatus");
 const {response, errResponse} = require("../../../config/response");
 
 const regexEmail = require("regex-email");
-const jquery = require("jquery");
 const {emit} = require("nodemon");
-const userProvider = require("../../app/User/userProvider");
 
 
 //구독 추가
