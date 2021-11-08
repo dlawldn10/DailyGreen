@@ -17,13 +17,11 @@ const serviceAccount = require('../../../dailygreen-6e49d-firebase-adminsdk-8g5g
 const request = require("request");
 
 
-let firebaseAdmin;
-if (!admin.apps.length) {
-    firebaseAdmin = admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        storageBucket: 'dailygreen-6e49d.appspot.com'
-    });
-}
+let firebaseAdmin = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: 'dailygreen-6e49d.appspot.com'
+});
+
 
 // res.redirect('download?imgName=' + image.originalname);
 

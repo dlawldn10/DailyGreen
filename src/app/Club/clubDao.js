@@ -89,6 +89,101 @@ async function insertClubFeeInfo(connection, clubIdx, fee, feeType) {
     return insertFeeInfoRow[0];
 }
 
+//모임탭 조회
+async function selectClubList(connection, limit, page) {
+
+    const selectClubsQuery = `
+        SELECT C.clubIdx,
+               C.userIdx,
+               U.nickname,
+               U.profilePhotoUrl,
+               C.clubName,
+               C.locationDetail,
+               C.maxPeopleNum,
+               C.bio,
+               date_format(C.when, '%Y-%m-%d %h:%i') as \`when\`,
+               case WEEKDAY(C.\`when\`)
+                   when '0' then '월요일'
+                   when '1' then '화요일'
+                   when '2' then '수요일'
+                   when '3' then '목요일'
+                   when '4' then '금요일'
+                   when '5' then '토요일'
+                   when '6' then '일요일'
+                   end as day, DATEDIFF(date(C.\`when\`), now()) as Dday,
+       CPU.url as clubPhoto
+        FROM Clubs C
+            LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U
+        on C.userIdx = U.userIdx
+            LEFT JOIN (SELECT clubIdx, url FROM ClubPhotoUrls GROUP BY clubIdx) CPU on C.clubIdx = CPU.clubIdx
+        WHERE C.status = 'ACTIVE' AND U.status = 'ACTIVE'
+        ORDER BY C.updatedAt DESC LIMIT ?
+        OFFSET ?;
+    `;
+
+    const selectClubListRow = await connection.query(
+        selectClubsQuery,
+        [limit, page]
+    );
+
+    return selectClubListRow[0];
+
+}
+
+//모임탭 조회 - 참여중인 사람들의 프사 최신순 탑3 조회
+async function selectFollowingUsersProfilePhotos(connection, clubIdx) {
+
+    const selectProfilePhotoUrlQuery = `
+        SELECT U.profilePhotoUrl FROM ClubFollowings CF
+        LEFT JOIN (SELECT userIdx, profilePhotoUrl FROM Users) U ON userIdx = CF.fromUserIdx
+        WHERE CF.toClubIdx = ?
+        ORDER BY CF.updatedAt DESC LIMIT 3;
+    `;
+
+    const selectUserProfileRow = await connection.query(
+        selectProfilePhotoUrlQuery,
+        clubIdx
+    );
+
+    return selectUserProfileRow[0];
+
+}
+
+//모임탭 조회 - 모임에 달린 태그들 조회
+async function selectClubTags(connection, clubIdx) {
+
+    const selectHashTagsQuery = `
+        SELECT CHT.clubIdx, CHT.tagIdx, CHT.status,
+               HT.tagName
+        FROM ClubHashTags CHT
+        LEFT JOIN (SELECT tagIdx, tagName, status FROM HashTags) HT ON CHT.tagIdx = HT.tagIdx
+        WHERE CHT.clubIdx = ? AND CHT.status = 'ACTIVE' AND HT.status = 'ACTIVE';
+    `;
+
+    const selectHashTagsRow = await connection.query(
+        selectHashTagsQuery,
+        clubIdx
+    );
+
+    return selectHashTagsRow[0];
+
+}
+
+//모임탭 조회 - 모임에 참여하고있는 사람들 수 조회
+async function selectClubFollowers(connection, clubIdx) {
+
+    const selectClubFollowersQuery = `
+        SELECT COUNT(*) as nowFollowing FROM ClubFollowings CF WHERE CF.toClubIdx = ?;
+    `;
+
+    const selectClubFollowersRow = await connection.query(
+        selectClubFollowersQuery,
+        clubIdx
+    );
+
+    return selectClubFollowersRow[0];
+
+}
 
 
 module.exports = {
@@ -97,6 +192,10 @@ module.exports = {
     insertHashTag,
     selectTagByTagName,
     insertClubHashTags,
-    insertClubFeeInfo
+    insertClubFeeInfo,
+    selectClubList,
+    selectFollowingUsersProfilePhotos,
+    selectClubTags,
+    selectClubFollowers
 
 };

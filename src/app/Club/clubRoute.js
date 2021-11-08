@@ -10,6 +10,9 @@ module.exports = function(app) {
     const upload = multer({ storage: multer.memoryStorage() });
 
     //모임 생성
-    app.post('/app/clubs', jwtMiddleware, upload.array('clubPhotos'), club.postClub);
+    app.post('/app/clubs', jwtMiddleware, upload.array('photos'), club.postClub);
+
+    //모임탭 조회
+    app.get('/app/clubs', jwtMiddleware, club.getClubList);
 
 }

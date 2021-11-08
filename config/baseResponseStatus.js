@@ -11,6 +11,7 @@ module.exports = {
     COMMUNITY_FOLLOW_SUCCESS : { "isSuccess": true, "code": 1003, "message":"해당 커뮤니티에 성공적으로 참여하였습니다." },
     COMMUNITY_UNFOLLOW_SUCCESS : { "isSuccess": true, "code": 1004, "message":"해당 커뮤니티 참여를 취소하였습니다." },
     CREATE_CLUB_SUCCESS : { "isSuccess": true, "code": 1005, "message":"모임이 생성되었습니다." },
+    CREATE_WORKSHOP_SUCCESS : { "isSuccess": true, "code": 1006, "message":"워크샵이 생성되었습니다." },
 
 
     //Request error
@@ -36,7 +37,7 @@ module.exports = {
     ACCOUNTIDX_EMPTY : { "isSuccess": false, "code": 2014, "message": "accountIdx을(를) 입력해주세요." },
     USERIDX_EMPTY : { "isSuccess": false, "code": 2015, "message": "userIdx을(를) 입력해주세요." },
     COMMUNITYIDX_EMPTY : { "isSuccess": false, "code": 2016, "message": "communityIdx을(를) 입력해주세요." },
-    CLUBNAME_EMPTY : { "isSuccess": false, "code": 2017, "message": "clubName을(를) 입력해주세요." },
+    CLUBNAME_EMPTY : { "isSuccess": false, "code": 2017, "message": "모임 name을(를) 입력해주세요." },
     CLUBPHOTOURLLIST_EMPTY : { "isSuccess": false, "code": 2018, "message": "clubPhotoUrlList을(를) 입력해주세요." },
     TAGLIST_EMPTY : { "isSuccess": false, "code": 2019, "message": "tagList을(를) 입력해주세요." },
     BIO_EMPTY : { "isSuccess": false, "code": 2020, "message": "bio을(를) 입력해주세요." },

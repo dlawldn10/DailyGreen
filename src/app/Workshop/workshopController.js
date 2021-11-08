@@ -1,5 +1,5 @@
-const clubProvider = require("../../app/Club/clubProvider");
-const clubService = require("../../app/Club/clubService");
+const workshopProvider = require("../../app/Workshop/workshopProvider");
+const workshopService = require("../../app/Workshop/workshopService");
 const baseResponse = require("../../../config/baseResponseStatus");
 const {response, errResponse} = require("../../../config/response");
 const admin = require('firebase-admin');
@@ -7,8 +7,9 @@ const multer = require('multer');
 const stream = require('stream');
 const serviceAccount = require('../../../dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json');
 const request = require("request");
+
+
 let firebaseAdmin = admin;
-console.log(admin.apps.length);
 if (!admin.apps.length) {
     firebaseAdmin = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
@@ -17,21 +18,20 @@ if (!admin.apps.length) {
 }
 
 
-//모임 생성
-exports.postClub = async function (req, res) {
+//워크샵 생성
+exports.postWorkshop = async function (req, res) {
 
     const userIdxFromJWT = req.verifiedToken.userIdx;
-    const clubInfo = {
+    const workshopInfo = {
         communityIdx : req.body.communityIdx,
-        clubName : req.body.name,
-        clubPhotoList : req.files,
+        workshopName : req.body.name,
+        workshopPhotoList : req.files,
         tagList : req.body.tagList,
         bio : req.body.bio,
         maxPeopleNum: req.body.maxPeopleNum,
         feeType : req.body.feeType,
         fee : req.body.fee,
         kakaoChatLink :req.body.kakaoChatLink,
-        isRegular : req.body.isRegular,
         locationIdx :req.body.locationIdx,
         locationDetail : req.body.locationDetail,
         when : req.body.when
@@ -41,47 +41,47 @@ exports.postClub = async function (req, res) {
     // 빈 값 체크
     if (!userIdxFromJWT)
         return res.send(response(baseResponse.TOKEN_VERIFICATION_FAILURE));
-    else if (!clubInfo.communityIdx)
+    else if (!workshopInfo.communityIdx)
         return res.send(response(baseResponse.COMMUNITYIDX_EMPTY));
-    else if (!clubInfo.clubName)
+    else if (!workshopInfo.workshopName)
         return res.send(response(baseResponse.CLUBNAME_EMPTY));
-    else if (!clubInfo.clubPhotoList)
+    else if (!workshopInfo.workshopPhotoList)
         return res.send(response(baseResponse.CLUBPHOTOURLLIST_EMPTY));
-    else if (!clubInfo.tagList)
+    else if (!workshopInfo.tagList)
         return res.send(response(baseResponse.TAGLIST_EMPTY));
-    else if (!clubInfo.bio)
+    else if (!workshopInfo.bio)
         return res.send(response(baseResponse.BIO_EMPTY));
-    else if (!clubInfo.maxPeopleNum)
+    else if (!workshopInfo.maxPeopleNum)
         return res.send(response(baseResponse.MAXPEOPLENUM_EMPTY));
-    else if (!clubInfo.feeType)
+    else if (!workshopInfo.feeType)
         return res.send(response(baseResponse.FEETYPE_EMPTY));
-    else if (!clubInfo.fee)
+    else if (!workshopInfo.fee)
         return res.send(response(baseResponse.FEE_EMPTY));
-    else if (!clubInfo.kakaoChatLink)
+    else if (!workshopInfo.kakaoChatLink)
         return res.send(response(baseResponse.KAKAOCAHTLINK_EMPTY));
-    else if (!clubInfo.isRegular)
-        return res.send(response(baseResponse.ISREGULAR_EMPTY));
-    else if (!clubInfo.locationIdx)
+    // else if (!workshopInfo.isRegular)
+    //     return res.send(response(baseResponse.ISREGULAR_EMPTY));
+    else if (!workshopInfo.locationIdx)
         return res.send(response(baseResponse.LOCATIONIDX_EMPTY));
-    else if (!clubInfo.locationDetail)
+    else if (!workshopInfo.locationDetail)
         return res.send(response(baseResponse.LOCATIONDETAIL_EMPTY));
-    else if (!clubInfo.when)
+    else if (!workshopInfo.when)
         return res.send(response(baseResponse.WHEN_EMPTY));
 
 
-    const clubPhotoUrlList = [];
-    for(let i=0;i<clubInfo.clubPhotoList.length;i++) {
+    const workshopPhotoUrlList = [];
+    for(let i=0;i<workshopInfo.workshopPhotoList.length;i++) {
 
         //사진 업로드
         const bufferStream = new stream.PassThrough();
-        bufferStream.end(new Buffer.from(clubInfo.clubPhotoList[i].buffer, 'ascii'));
+        bufferStream.end(new Buffer.from(workshopInfo.workshopPhotoList[i].buffer, 'ascii'));
         const fileName = Date.now() + `_${i+1}`;
 
-        const file = firebaseAdmin.storage().bucket().file('Clubs/ClubImages/' + fileName);
+        const file = firebaseAdmin.storage().bucket().file('Workshops/WorkshopImages/' + fileName);
 
         await bufferStream.pipe(file.createWriteStream({
 
-            metadata: {contentType: clubInfo.clubPhotoList[i].mimetype}
+            metadata: {contentType: workshopInfo.workshopPhotoList[i].mimetype}
 
         })).on('error', (eer) => {
 
@@ -98,12 +98,12 @@ exports.postClub = async function (req, res) {
                         console.log(err);
                     }
                     // console.log(url);
-                    clubPhotoUrlList.push(url);
-                    if(clubPhotoUrlList.length == clubInfo.clubPhotoList.length){
+                    workshopPhotoUrlList.push(url);
+                    if(workshopPhotoUrlList.length == workshopInfo.workshopPhotoList.length){
                         //타이밍 맞추기 위한 if문.
-                        delete clubInfo.clubPhotoList;
-                        const createClubPhotosResponse = await clubService.createClub(userIdxFromJWT, clubInfo, clubPhotoUrlList);
-                        return res.send(createClubPhotosResponse);
+                        delete workshopInfo.workshopPhotoList;
+                        const createWorkshopPhotosResponse = await workshopService.createWorkshop(userIdxFromJWT, workshopInfo, workshopPhotoUrlList);
+                        return res.send(createWorkshopPhotosResponse);
                         // return res.send(response(baseResponse.SUCCESS));
                     }
                 });
@@ -111,36 +111,6 @@ exports.postClub = async function (req, res) {
     }
 
 
-
-}
-
-
-//모임탭 조회
-exports.getClubList = async function (req, res){
-
-    let page = req.query.page;
-    const userIdxFromJWT = req.verifiedToken.userIdx;
-
-    const limit = 5;
-
-    if (!userIdxFromJWT)
-        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
-
-    if(limit-page < 0){
-
-        page = 0;
-
-    }else if(page == 0){
-
-        return res.send(errResponse(baseResponse.PAGECOUNT_WRONG));
-    }else{
-
-        page = (page-1)*limit
-
-    }
-
-    const postsFromFollowingUsers = await clubProvider.retrieveClubList(userIdxFromJWT, page, limit);
-    return res.send(response(baseResponse.SUCCESS, postsFromFollowingUsers));
 
 }
 
