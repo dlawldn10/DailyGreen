@@ -1,24 +1,23 @@
 
-const jwtMiddleware = require("../../../config/jwtMiddleware");
+
 const userProvider = require("../../app/User/userProvider");
 const userService = require("../../app/User/userService");
 const baseResponse = require("../../../config/baseResponseStatus");
 const {response, errResponse} = require("../../../config/response");
-
+const Cache = require('memory-cache');
 const regexEmail = require("regex-email");
-const jquery = require("jquery");
-const {emit} = require("nodemon");
-
 
 const admin = require('firebase-admin');
-const multer = require('multer');
 const stream = require('stream');
 const serviceAccount = require('../../../dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json');
 const request = require("request");
 
+const crypto = require("crypto");
+
 
 let firebaseAdmin = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
+    authDomain: "dailygreen-6e49d.firebaseapp.com",
     storageBucket: 'dailygreen-6e49d.appspot.com'
 });
 
@@ -148,6 +147,99 @@ exports.postNicknameCheck = async function (req, res) {
     return res.send(nicknameCheckResponse);
 };
 
+
+//전화번호 인증번호 발급
+exports.postPhoneNumberCheck = async function (req, res){
+
+    const user_phone_number = req.body.phoneNumber;
+    Cache.del(user_phone_number);
+
+    let resultResponse = response(baseResponse.SEND_SMS_SUCCESS);
+    const date = Date.now().toString();
+    const uri = "ncp:sms:kr:260204349130:daily_green"; //서비스 ID
+    const secretKey = "BoRsQ6PIsPHm7FPGXc8ZClVQnVMr7oYVf00IWHmU";// Secret Key
+    const accessKey = "KejeShIMS7H75JdOFn5R";//Access Key
+    const method = "POST";
+    const space = " ";
+    const newLine = "\n";
+    const url = `https://sens.apigw.ntruss.com/sms/v2/services/${uri}/messages`;
+    const url2 = `/sms/v2/services/${uri}/messages`;
+    const message = [];
+    const hmac = crypto.createHmac('sha256', secretKey);
+    message.push(method);
+    message.push(space);
+    message.push(url2);
+    message.push(newLine);
+    message.push(date);
+    message.push(newLine);
+    message.push(accessKey);
+
+    //message 배열에 위의 내용들을 담아준 후에
+    const signature = hmac.update(message.join('')).digest('base64');
+    //message.join('') 으로 만들어진 string 을 hmac 에 담고, base64로 인코딩한다
+
+    //인증번호 발급
+    let verifyCode = "";
+    for (let i = 0; i < 6; i++) {
+        verifyCode += parseInt(Math.random() * 10);
+    }
+
+
+    request(
+        {
+            method: method,
+            json: true,
+            uri: url,
+            headers: {
+                "Content-type": "application/json; charset=utf-8",
+                "x-ncp-iam-access-key": accessKey,
+                "x-ncp-apigw-timestamp": date,
+                "x-ncp-apigw-signature-v2": signature.toString()},
+            body: {
+                type: 'SMS',
+                countryCode: '82',
+                from: '01055605449',
+                content: `일상그린 인증번호: ${verifyCode}`,
+                messages: [{ to: `${user_phone_number}` }]} },
+        async (err, response, body) => {
+            if(err != null){
+                //전송 실패
+                console.log(err);
+                // console.log(res);
+                resultResponse = response(baseResponse.PHONE_NUMBER_SMS_ERROR);
+            }
+            else {
+                //전송 성공
+                Cache.put(user_phone_number, verifyCode);
+                console.log(body);
+                // console.log(res);
+            }
+        }
+
+    );
+
+    return res.send(resultResponse);
+}
+
+//인증번호 확인
+exports.postPhoneNumberVerify = async function (req, res){
+
+    const phoneNumber = req.body.phoneNumber
+    const verifyCode = req.body.verifyCode;
+
+    const CacheData = Cache.get(phoneNumber);
+    if (!CacheData) {
+        return res.send(response(baseResponse.NO_VERIFY_REQUEST));
+    }
+
+    if (CacheData !== verifyCode) {
+        return res.send(response(baseResponse.VERIFY_CODE_WRONG));
+    }
+
+    Cache.del(phoneNumber);
+
+    return res.send(response(baseResponse.VERIFY_PHONENUMBER_SUCCESS));
+}
 
 //카카오 로그인
 exports.kakaoLogin = async function (req, res) {

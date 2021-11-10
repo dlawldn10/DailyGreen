@@ -1,6 +1,5 @@
 const jwtMiddleware = require("../../../config/jwtMiddleware");
 const club = require("./clubController");
-const multer = require("multer");
 
 
 module.exports = function(app) {
@@ -13,6 +12,9 @@ module.exports = function(app) {
     app.post('/app/clubs', jwtMiddleware, upload.array('photos'), club.postClub);
 
     //모임탭 조회
-    app.get('/app/clubs', jwtMiddleware, club.getClubList);
+    app.get('/app/communities/:communityIdx/clubs', jwtMiddleware, club.getClubList);
+
+    //모임 상세 조회
+    app.get('/app/clubs/:clubIdx', jwtMiddleware, club.getClub);
 
 }

@@ -12,6 +12,8 @@ module.exports = {
     COMMUNITY_UNFOLLOW_SUCCESS : { "isSuccess": true, "code": 1004, "message":"해당 커뮤니티 참여를 취소하였습니다." },
     CREATE_CLUB_SUCCESS : { "isSuccess": true, "code": 1005, "message":"모임이 생성되었습니다." },
     CREATE_WORKSHOP_SUCCESS : { "isSuccess": true, "code": 1006, "message":"워크샵이 생성되었습니다." },
+    VERIFY_PHONENUMBER_SUCCESS : { "isSuccess": true, "code": 1007, "message":"휴대전화 인증 성공." },
+    SEND_SMS_SUCCESS : { "isSuccess": true, "code": 1008, "message":"SMS 문자 전송 성공." },
 
 
     //Request error
@@ -49,6 +51,7 @@ module.exports = {
     LOCATIONIDX_EMPTY : { "isSuccess": false, "code": 2026, "message": "locationIdx을(를) 입력해주세요." },
     LOCATIONDETAIL_EMPTY : { "isSuccess": false, "code": 2027, "message": "locationDetail을(를) 입력해주세요." },
     WHEN_EMPTY : { "isSuccess": false, "code": 2028, "message": "when을(를) 입력해주세요." },
+    CLUBIDX_EMPTY : { "isSuccess": false, "code": 2029, "message": "clubIdx을(를) 입력해주세요." },
 
 
 
@@ -68,7 +71,9 @@ module.exports = {
     ACTION_EMPTY : { "isSuccess": false, "code": 2024, "message": "action을 입력해 주세요." },
     ACTION_WRONG : { "isSuccess": false, "code": 2025, "message": "action을 바르게 입력해 주세요." },
 
-    PAGECOUNT_WRONG : { "isSuccess": false, "code": 2014, "message": "잘못된 페이지 호출입니다." },
+    PAGECOUNT_WRONG : { "isSuccess": false, "code": 2026, "message": "잘못된 페이지 호출입니다." },
+    NO_VERIFY_REQUEST : { "isSuccess": false, "code": 2027, "message": "인증 요청 내역이 없습니다. 인증번호를 다시 요청해주세요." },
+    VERIFY_CODE_WRONG : { "isSuccess": false, "code": 2028, "message": "인증번호가 일치하지 않습니다." },
 
     COMMENT_CONTENT_EMPTY : { "isSuccess": false, "code": 2015, "message": "댓글 내용을 입력해주세요." },
 
@@ -83,6 +88,7 @@ module.exports = {
     KAKAO_LOGIN_ERROR : { "isSuccess": false, "code": 3008, "message": "카카오 액세스 에러" },
     COMMUNITY_FOLLOW_ERROR : { "isSuccess": false, "code": 3010, "message": "이미 해당 커뮤니티에 참여하고 있습니다." },
     COMMUNITY_UNFOLLOW_ERROR : { "isSuccess": false, "code": 3011, "message": "이미 해당 커뮤니티에 참여하고 있지 않습니다." },
+    PHONE_NUMBER_SMS_ERROR : { "isSuccess": false, "code": 3012, "message": "SMS 문자 전송에 실패하였습니다." },
 
     //Connection, Transaction 등의 서버 오류
     DB_ERROR : { "isSuccess": false, "code": 4000, "message": "데이터 베이스 에러"},

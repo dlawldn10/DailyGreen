@@ -119,12 +119,15 @@ exports.postClub = async function (req, res) {
 exports.getClubList = async function (req, res){
 
     let page = req.query.page;
+    const communityIdx = req.params.communityIdx;
     const userIdxFromJWT = req.verifiedToken.userIdx;
 
     const limit = 5;
 
     if (!userIdxFromJWT)
         return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!communityIdx)
+        return res.send(errResponse(baseResponse.COMMUNITYIDX_EMPTY));
 
     if(limit-page < 0){
 
@@ -139,8 +142,24 @@ exports.getClubList = async function (req, res){
 
     }
 
-    const postsFromFollowingUsers = await clubProvider.retrieveClubList(userIdxFromJWT, page, limit);
+    const postsFromFollowingUsers = await clubProvider.retrieveClubList(userIdxFromJWT, page, limit, communityIdx);
     return res.send(response(baseResponse.SUCCESS, postsFromFollowingUsers));
+
+}
+
+//모임 상세 조회
+exports.getClub = async function (req, res){
+
+    const clubIdx = req.params.clubIdx;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!clubIdx)
+        return res.send(errResponse(baseResponse.CLUBIDX_EMPTY));
+
+    const retrieveClubResult = await clubProvider.retrieveClub(userIdxFromJWT, clubIdx);
+    return res.send(response(baseResponse.SUCCESS, retrieveClubResult));
 
 }
 

@@ -1,21 +1,21 @@
-const user = require("./userController");
-const jwtMiddleware = require("../../../config/jwtMiddleware");
 
 
 module.exports = function(app){
     const user = require('./userController');
-    const jwtMiddleware = require('../../../config/jwtMiddleware');
     const multer = require("multer");
     const upload = multer({ storage: multer.memoryStorage() });
-
-
-    // app.post('/app/upload/photo', upload.single('photo'), user.imageTestPost);
-    // app.get('/app/upload/download', user.imageTestGet);
 
 
 
     //회원 가입 전 닉네임 중복 검사
     app.post('/app/users/nicknames', user.postNicknameCheck);
+
+    //자체 회원가입
+    //전화번호 인증번호 발급
+    app.post('/app/users/auth', user.postPhoneNumberCheck);
+    //전화번호 인증번호 비교
+    app.post('/app/users/auth/verify', user.postPhoneNumberVerify);
+
 
     //회원가입을 나누자
 

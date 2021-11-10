@@ -90,7 +90,7 @@ async function insertClubFeeInfo(connection, clubIdx, fee, feeType) {
 }
 
 //모임탭 조회
-async function selectClubList(connection, limit, page) {
+async function selectClubList(connection, communityIdx, limit, page) {
 
     const selectClubsQuery = `
         SELECT C.clubIdx,
@@ -116,14 +116,14 @@ async function selectClubList(connection, limit, page) {
             LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U
         on C.userIdx = U.userIdx
             LEFT JOIN (SELECT clubIdx, url FROM ClubPhotoUrls GROUP BY clubIdx) CPU on C.clubIdx = CPU.clubIdx
-        WHERE C.status = 'ACTIVE' AND U.status = 'ACTIVE'
+        WHERE C.status = 'ACTIVE' AND U.status = 'ACTIVE' AND C.communityIdx = ?
         ORDER BY C.updatedAt DESC LIMIT ?
         OFFSET ?;
     `;
 
     const selectClubListRow = await connection.query(
         selectClubsQuery,
-        [limit, page]
+        [communityIdx, limit, page]
     );
 
     return selectClubListRow[0];
@@ -131,7 +131,7 @@ async function selectClubList(connection, limit, page) {
 }
 
 //모임탭 조회 - 참여중인 사람들의 프사 최신순 탑3 조회
-async function selectFollowingUsersProfilePhotos(connection, clubIdx) {
+async function selectThreeFollowingUsersProfilePhotos(connection, clubIdx) {
 
     const selectProfilePhotoUrlQuery = `
         SELECT U.profilePhotoUrl FROM ClubFollowings CF
@@ -153,8 +153,7 @@ async function selectFollowingUsersProfilePhotos(connection, clubIdx) {
 async function selectClubTags(connection, clubIdx) {
 
     const selectHashTagsQuery = `
-        SELECT CHT.clubIdx, CHT.tagIdx, CHT.status,
-               HT.tagName
+        SELECT HT.tagName
         FROM ClubHashTags CHT
         LEFT JOIN (SELECT tagIdx, tagName, status FROM HashTags) HT ON CHT.tagIdx = HT.tagIdx
         WHERE CHT.clubIdx = ? AND CHT.status = 'ACTIVE' AND HT.status = 'ACTIVE';
@@ -186,6 +185,79 @@ async function selectClubFollowers(connection, clubIdx) {
 }
 
 
+async function selectClubByClubIdx(connection, clubIdx){
+
+    const selectClubQuery = `
+        SELECT C.clubIdx,
+               C.userIdx,
+               U.nickname,
+               U.profilePhotoUrl,
+               C.clubName,
+               C.locationDetail,
+               C.maxPeopleNum,
+               C.bio,
+               date_format(C.when, '%Y-%m-%d %h:%i') as \`when\`,
+               case WEEKDAY(C.\`when\`)
+                   when '0' then '월요일'
+                   when '1' then '화요일'
+                   when '2' then '수요일'
+                   when '3' then '목요일'
+                   when '4' then '금요일'
+                   when '5' then '토요일'
+                   when '6' then '일요일'
+                   end as day,
+       DATEDIFF(date(C.\`when\`), now()) as Dday,
+       CEF.feeType,
+       CEF.fee
+        FROM Clubs C
+            LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U
+        on C.userIdx = U.userIdx
+            LEFT JOIN (SELECT clubIdx, feeType, fee FROM ClubEntranceFees) CEF on C.clubIdx = CEF.clubIdx
+        WHERE C.status = 'ACTIVE' AND U.status = 'ACTIVE' AND C.clubIdx = ?;
+    `;
+
+    const selectClubRow = await connection.query(
+        selectClubQuery,
+        clubIdx
+    );
+
+    return selectClubRow[0];
+
+}
+
+//모임 상세 조회 - 참여중인 모든 사람들의 프사와 닉네임
+async function selectFollowingUsersProfile(connection, clubIdx) {
+
+    const selectUserProfileQuery = `
+        SELECT U.profilePhotoUrl, U.nickname FROM ClubFollowings CF
+        LEFT JOIN (SELECT userIdx, profilePhotoUrl, nickname FROM Users) U ON userIdx = CF.fromUserIdx
+        WHERE CF.toClubIdx = ?
+        ORDER BY CF.updatedAt DESC;
+    `;
+
+    const selectUserProfileRow = await connection.query(
+        selectUserProfileQuery,
+        clubIdx
+    );
+
+    return selectUserProfileRow[0];
+
+}
+
+async function selectClubPhotoUrls(connection, clubIdx){
+    const selectClubPhotoQuery = `
+        SELECT url as clubPhotoUrl FROM ClubPhotoUrls CPU
+        WHERE clubIdx = ?;
+    `;
+
+    const selectClubPhotoRow = await connection.query(
+        selectClubPhotoQuery,
+        clubIdx
+    );
+
+    return selectClubPhotoRow[0];
+}
+
 module.exports = {
     insertClubInfo,
     insertClubPhotoUrl,
@@ -194,8 +266,11 @@ module.exports = {
     insertClubHashTags,
     insertClubFeeInfo,
     selectClubList,
-    selectFollowingUsersProfilePhotos,
+    selectThreeFollowingUsersProfilePhotos,
     selectClubTags,
-    selectClubFollowers
+    selectClubFollowers,
+    selectClubByClubIdx,
+    selectFollowingUsersProfile,
+    selectClubPhotoUrls
 
 };
