@@ -14,6 +14,7 @@ module.exports = {
     CREATE_WORKSHOP_SUCCESS : { "isSuccess": true, "code": 1006, "message":"워크샵이 생성되었습니다." },
     VERIFY_PHONENUMBER_SUCCESS : { "isSuccess": true, "code": 1007, "message":"휴대전화 인증 성공." },
     SEND_SMS_SUCCESS : { "isSuccess": true, "code": 1008, "message":"SMS 문자 전송 성공." },
+    UPDATE_CLUB_SUCCESS : { "isSuccess": true, "code": 1009, "message":"모임 수정 성공." },
 
 
     //Request error
@@ -52,6 +53,7 @@ module.exports = {
     LOCATIONDETAIL_EMPTY : { "isSuccess": false, "code": 2027, "message": "locationDetail을(를) 입력해주세요." },
     WHEN_EMPTY : { "isSuccess": false, "code": 2028, "message": "when을(를) 입력해주세요." },
     CLUBIDX_EMPTY : { "isSuccess": false, "code": 2029, "message": "clubIdx을(를) 입력해주세요." },
+    WORKSHOPIDX_EMPTY : { "isSuccess": false, "code": 2030, "message": "workshopIdx을(를) 입력해주세요." },
 
 
 
@@ -93,6 +95,7 @@ module.exports = {
     //Connection, Transaction 등의 서버 오류
     DB_ERROR : { "isSuccess": false, "code": 4000, "message": "데이터 베이스 에러"},
     SERVER_ERROR : { "isSuccess": false, "code": 4001, "message": "서버 에러"},
+    FIREBASE_ERROR : { "isSuccess": false, "code": 4002, "message": "파이어베이스 업로드 에러"},
 
 
 }

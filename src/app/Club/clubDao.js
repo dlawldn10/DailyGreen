@@ -33,7 +33,7 @@ async function insertClubPhotoUrl(connection, clubIdx, userIdx, url) {
 //해시태그 삽입
 async function insertHashTag(connection, tagName) {
     const insertHashTagQuery = `
-        INSERT INTO HashTags(tagName) VALUES (?) ON DUPLICATE KEY UPDATE tagName = ?;
+        INSERT IGNORE INTO HashTags(tagName) VALUES (?);
         `;
     const insertHashTagRow = await connection.query(
         insertHashTagQuery,
@@ -59,18 +59,18 @@ async function selectTagByTagName(connection, tagName) {
 }
 
 //모임 태그에 등록하기
-async function insertClubHashTags(connection, tagIdx, clubIdx) {
+async function insertClubTags(connection, tagIdx, clubIdx) {
 
-    const insertStoryTagQuery = `
+    const insertClubTagQuery = `
         INSERT INTO ClubHashTags(tagIdx, clubIdx) VALUES (?, ?);
     `;
 
-    const insertStoryTagRow = await connection.query(
-        insertStoryTagQuery,
+    const insertClubTagRow = await connection.query(
+        insertClubTagQuery,
         [tagIdx, clubIdx]
     );
 
-    return insertStoryTagRow[0];
+    return insertClubTagRow[0];
 }
 
 //모임 회비 정보 넣기
@@ -258,12 +258,109 @@ async function selectClubPhotoUrls(connection, clubIdx){
     return selectClubPhotoRow[0];
 }
 
+
+async function updateClubInfo(connection, updateClubInfoParams){
+    const updateClubInfoQuery = `
+        UPDATE Clubs SET communityIdx = ?, userIdx = ?, clubName =?,
+                         bio = ?, maxPeopleNum = ?, \`when\` = ?,
+                         locationIdx = ?, locationDetail = ?, kakaoChatLink =?,
+                         isRegular = ? WHERE clubIdx = ? AND status = 'ACTIVE';
+    `;
+
+    const updateClubInfoRow = await connection.query(
+        updateClubInfoQuery,
+        updateClubInfoParams
+    );
+
+    return updateClubInfoRow[0];
+}
+
+
+async function updateClubFeeInfo(connection, clubIdx, fee, feeType){
+    const updateClubFeeInfoQuery = `
+        UPDATE ClubEntranceFees SET feeType = ?, fee = ? WHERE clubIdx = ? AND status = 'ACTIVE';
+    `;
+
+    const updateClubFeeInfoRow = await connection.query(
+        updateClubFeeInfoQuery,
+        [feeType, fee, clubIdx]
+    );
+
+    return updateClubFeeInfoRow[0];
+}
+
+async function updateClubTags(connection, newStatus, clubIdx){
+    const updateClubFeeInfoQuery = `
+        UPDATE ClubHashTags SET status = ? WHERE clubIdx = ? AND status = 'ACTIVE';
+    `;
+
+    const updateClubFeeInfoRow = await connection.query(
+        updateClubFeeInfoQuery,
+        [newStatus, clubIdx]
+    );
+
+    return updateClubFeeInfoRow[0];
+}
+
+async function selectClubTagBytagIdx(connection, clubIdx, tagIdx){
+    const countClubTagsQuery = `
+        SELECT COUNT(*) as Cnt FROM ClubHashTags WHERE clubIdx = ? AND tagIdx = ?;
+    `;
+
+    const updateClubFeeInfoRow = await connection.query(
+        countClubTagsQuery,
+        [clubIdx, tagIdx]
+    );
+
+    return updateClubFeeInfoRow[0];
+}
+
+async function updateOneClubTag(connection, newStatus, clubIdx, tagIdx){
+    const updateClubFeeInfoQuery = `
+        UPDATE ClubHashTags SET status = ? WHERE clubIdx = ? AND tagIdx = ?;
+    `;
+
+    const updateClubFeeInfoRow = await connection.query(
+        updateClubFeeInfoQuery,
+        [newStatus, clubIdx, tagIdx]
+    );
+
+    return updateClubFeeInfoRow[0];
+}
+
+async function selectHashTagBytagName(connection, tagName){
+    const countClubTagsQuery = `
+        SELECT COUNT(*) as Cnt FROM HashTags WHERE tagName = ?;
+    `;
+
+    const updateClubFeeInfoRow = await connection.query(
+        countClubTagsQuery,
+        tagName
+    );
+
+    return updateClubFeeInfoRow[0];
+};
+
+
+async function updateOneHashTag(connection, newStatus, tagName){
+    const updateHashTagStatusQuery = `
+        UPDATE HashTags SET status = ? WHERE tagName = ?;
+    `;
+
+    const updateHashTagStatusRow = await connection.query(
+        updateHashTagStatusQuery,
+        [newStatus, tagName]
+    );
+
+    return updateHashTagStatusRow[0];
+}
+
 module.exports = {
     insertClubInfo,
     insertClubPhotoUrl,
     insertHashTag,
     selectTagByTagName,
-    insertClubHashTags,
+    insertClubTags,
     insertClubFeeInfo,
     selectClubList,
     selectThreeFollowingUsersProfilePhotos,
@@ -271,6 +368,13 @@ module.exports = {
     selectClubFollowers,
     selectClubByClubIdx,
     selectFollowingUsersProfile,
-    selectClubPhotoUrls
+    selectClubPhotoUrls,
+    updateClubInfo,
+    updateClubFeeInfo,
+    updateClubTags,
+    selectClubTagBytagIdx,
+    updateOneClubTag,
+    selectHashTagBytagName,
+    updateOneHashTag
 
 };

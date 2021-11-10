@@ -1,3 +1,5 @@
+const jwtMiddleware = require("../../../config/jwtMiddleware");
+
 
 
 module.exports = function(app) {
@@ -8,5 +10,11 @@ module.exports = function(app) {
 
     //워크샵 생성
     app.post('/app/workshops', jwtMiddleware, upload.array('photos'), workshop.postWorkshop);
+
+    //워크샵탭 조회
+    app.get('/app/communities/:communityIdx/workshops', jwtMiddleware, workshop.getWorkshopList);
+
+    //워크샵 상세 조회
+    app.get('/app/workshops/:workshopIdx', jwtMiddleware, workshop.getWorkshop);
 
 }

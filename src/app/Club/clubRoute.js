@@ -17,4 +17,7 @@ module.exports = function(app) {
     //모임 상세 조회
     app.get('/app/clubs/:clubIdx', jwtMiddleware, club.getClub);
 
+    //모임 수정
+    app.patch('/app/clubs/:clubIdx', upload.array('photos'), jwtMiddleware, club.patchClub);
+
 }

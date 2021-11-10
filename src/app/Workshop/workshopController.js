@@ -114,3 +114,51 @@ exports.postWorkshop = async function (req, res) {
 
 }
 
+
+//워크샵탭 조회
+exports.getWorkshopList = async function (req, res){
+
+    let page = req.query.page;
+    const communityIdx = req.params.communityIdx;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    const limit = 5;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!communityIdx)
+        return res.send(errResponse(baseResponse.COMMUNITYIDX_EMPTY));
+
+    if(limit-page < 0){
+
+        page = 0;
+
+    }else if(page == 0 || !page){
+
+        return res.send(errResponse(baseResponse.PAGECOUNT_WRONG));
+    }else{
+
+        page = (page-1)*limit
+
+    }
+
+    const workshopListResult = await workshopProvider.retrieveWorkshopList(userIdxFromJWT, page, limit, communityIdx);
+    return res.send(response(baseResponse.SUCCESS, workshopListResult));
+
+}
+
+//워크샵 상세 조회
+exports.getWorkshop = async function (req, res){
+
+    const workshopIdx = req.params.workshopIdx;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!workshopIdx)
+        return res.send(errResponse(baseResponse.WORKSHOPIDX_EMPTY));
+
+    const retrieveWorkshopResult = await workshopProvider.retrieveWorkshop(userIdxFromJWT, workshopIdx);
+    return res.send(response(baseResponse.SUCCESS, retrieveWorkshopResult));
+
+}
