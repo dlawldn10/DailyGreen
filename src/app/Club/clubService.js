@@ -14,7 +14,6 @@ const stream = require("stream");
 const admin = require("firebase-admin");
 const serviceAccount = require("../../../dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json");
 let firebaseAdmin = admin;
-console.log(admin.apps.length);
 if (!admin.apps.length) {
     firebaseAdmin = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
@@ -23,11 +22,13 @@ if (!admin.apps.length) {
 }
 
 //모임 추가
-exports.createClub = async function (userIdxFromJWT, clubInfo, clubPhotoUrlList) {
+exports.createClub = async function (userIdxFromJWT, clubInfo) {
     const connection = await pool.getConnection(async (conn) => conn);
 
     try {
         await connection.beginTransaction();
+
+        let resultResponse = response(baseResponse.CREATE_CLUB_SUCCESS);
 
         //모임 정보 넣기
         const insertClubInfoParams = [
@@ -37,45 +38,62 @@ exports.createClub = async function (userIdxFromJWT, clubInfo, clubPhotoUrlList)
         const insertClubInfoRow = await clubDao.insertClubInfo(connection, insertClubInfoParams);
 
 
+        const clubIdx = insertClubInfoRow.insertId;
         //모임 회비 정보 넣기
-        const insertClubFeeInfoRow = await clubDao.insertClubFeeInfo(connection, insertClubInfoRow.insertId, clubInfo.fee, clubInfo.feeType);
+        const insertClubFeeInfoRow = await clubDao.insertClubFeeInfo(connection, clubIdx, clubInfo.fee, clubInfo.feeType);
 
 
         if (clubInfo.isRegular == 0) {
             //비정기 모임일때 -> 태그 없음, 사진 한장
 
-            const insertClubPhotoUrlRow = await clubDao.insertClubPhotoUrl(connection, insertClubInfoRow.insertId, userIdxFromJWT, clubPhotoUrlList[0]);
+            if(clubInfo.clubPhotoList.length > 1){
+                resultResponse = response(baseResponse.TOO_MUCH_PHOTOS);
+            }
+            const insertClubPhotoUrlRow = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx);
 
             await connection.commit();
             connection.release();
 
-            return response(baseResponse.CREATE_CLUB_SUCCESS);
+            return resultResponse;
         }
 
-        //사진들 넣기
-        for (let i = 0; i < clubPhotoUrlList.length; i++) {
-            const insertClubPhotoUrlRow = await clubDao.insertClubPhotoUrl(connection, insertClubInfoRow.insertId, userIdxFromJWT, clubPhotoUrlList[i]);
+        if(clubInfo.clubPhotoList.length > 5){
+            resultResponse = response(baseResponse.TOO_MUCH_PHOTOS);
         }
+
+        //정기모임일때 -> 사진 게시
+        const insertClubPhotoUrlRow = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx);
 
         //태그들 게시
         for (let i = 0; i < clubInfo.tagList.length; i++) {
 
-
-            const insertTagResult = await clubDao.insertHashTag(connection, clubInfo.tagList[i]);
+            //이 태그가 원래 있던 태그인지 확인
             const selectTagResult = await clubDao.selectTagByTagName(connection, clubInfo.tagList[i]);
-            const insertStoryTagResult = await clubDao.insertClubHashTags(connection, selectTagResult[0].tagIdx, insertClubInfoRow.insertId);
+            if(selectTagResult[0].Cnt > 0){
+                //같은게 있으면 추가 안하고-> pass
+                //모임 태그에 등록한다.
+                const insertClubTagResult = await clubDao.insertClubTags(connection, selectTagResult[0].tagIdx, clubIdx);
+
+            }else {
+                //없으면 추가
+                const insertTagResult = await clubDao.insertHashTag(connection, clubInfo.tagList[i]);
+                //모임 태그에 등록한다.
+                const insertClubTagResult = await clubDao.insertClubTags(connection, insertTagResult.insertId, clubIdx);
+            }
+
 
         }
 
 
         await connection.commit();
-        connection.release();
-
-        return response(baseResponse.CREATE_CLUB_SUCCESS);
+        return resultResponse;
 
     }catch (err) {
+        connection.rollback();
         logger.error(`App - createClub Service error\n: ${err.message} \n${JSON.stringify(err)}`);
         return errResponse(baseResponse.DB_ERROR);
+    }finally {
+        connection.release();
     }
 
 
@@ -107,35 +125,34 @@ exports.updateClub = async function (userIdxFromJWT, clubInfo) {
         //태그들 업데이트
         for (let i = 0; i < clubInfo.tagList.length; i++) {
 
-            //태그를 삽입한다. 이때 이미 있던 태그들은 무시된다.
-            const insertTagResult = await clubDao.insertHashTag(connection, clubInfo.tagList[i]);
-
-            //새로 삽입하거나 업데이트한 태그의 tagIdx를 구한다.
+            //이 태그가 원래 있던 태그인지 확인
             const selectTagResult = await clubDao.selectTagByTagName(connection, clubInfo.tagList[i]);
-            console.log(selectTagResult[0].tagIdx);
+            if(selectTagResult[0].Cnt > 0){
+                //있었음 -> 신규 등록 pass
 
-            //모임 태그에 등록한다.
-            //전에 있던 태그인지 여부를 확인하고
-            const selectClubTagResult = await clubDao.selectClubTagBytagIdx(connection, clubInfo.clubIdx, selectTagResult[0].tagIdx);
-            console.log(selectClubTagResult[0].Cnt);
-            // 수정 전에 있던 태그가 있으면 status update
-            if(selectClubTagResult[0].Cnt > 0){
-                const updateTagResult = await clubDao.updateOneClubTag(connection, 'ACTIVE', clubInfo.clubIdx, selectTagResult[0].tagIdx);
+                //모임에 원래 붙어있었던 태그인지 확인
+                const selectClubTagResult = await clubDao.selectClubTagBytagIdx(connection, clubInfo.clubIdx, selectTagResult[0].tagIdx);
+                if(selectClubTagResult[0].Cnt > 0){
+                    //있었음 -> status update
+                    const updateTagResult = await clubDao.updateOneClubTag(connection, 'ACTIVE', clubInfo.clubIdx, selectTagResult[0].tagIdx);
 
-            }else{
-                //없으면 새로 삽입.
-                const insertTagResult = await clubDao.insertClubTags(connection, selectTagResult[0].tagIdx, clubInfo.clubIdx);
+                }else{
+                    //없었음 -> 새로 삽입.
+                    const insertTagResult = await clubDao.insertClubTags(connection, selectTagResult[0].tagIdx, clubInfo.clubIdx);
+                }
+
+            }else {
+                //없었음 -> 신규등록
+                const insertTagResult = await clubDao.insertHashTag(connection, clubInfo.tagList[i]);
+
+                //신규태그일 것이므로 모임 태그에 바로 등록한다.
+                const insertClubTagResult = await clubDao.insertClubTags(connection, insertTagResult.insertId, clubInfo.clubIdx);
             }
 
         }
 
 
-        //사진 수정...흠
 
-        if(clubInfo.clubPhotoList.length > 0){
-
-            resultResponse = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT);
-        }
 
         connection.commit();
         return resultResponse;
@@ -154,14 +171,16 @@ exports.updateClub = async function (userIdxFromJWT, clubInfo) {
     }
 }
 
-async function uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT) {
+
+//파이어베이스 업로드
+async function uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx) {
     //사진 업로드
     const clubPhotoUrlList = [];
     for (let i = 0; i < clubInfo.clubPhotoList.length; i++) {
 
         const bufferStream = new stream.PassThrough();
         bufferStream.end(new Buffer.from(clubInfo.clubPhotoList[i].buffer, 'ascii'));
-        const fileName = Date.now() + `_${clubInfo.clubIdx}` + `_${i + 1}`;
+        const fileName = Date.now() + `_${clubIdx}` + `_${i + 1}`;
 
         const file = firebaseAdmin.storage().bucket().file('Clubs/ClubImages/' + fileName);
 
@@ -192,15 +211,10 @@ async function uploadToFirebaseStorage(connection, resultResponse, clubInfo, use
                     if (clubPhotoUrlList.length == clubInfo.clubPhotoList.length) {
                         //타이밍 맞추기 위한 if문.
                         delete clubInfo.clubPhotoList;
-                        if (clubInfo.isRegular === 0) {
-                            //비정기 모임일때 -> 사진 한장
-                            const insertClubPhotoUrlRow = await clubDao.insertClubPhotoUrl(connection, clubInfo.clubIdx, userIdxFromJWT, clubPhotoUrlList[0]);
-
-                        }
 
                         //사진들 넣기
                         for (let i = 0; i < clubPhotoUrlList.length; i++) {
-                            const insertClubPhotoUrlRow = await clubDao.insertClubPhotoUrl(connection, clubInfo.clubIdx, userIdxFromJWT, clubPhotoUrlList[i]);
+                            const insertClubPhotoUrlRow = await clubDao.insertClubPhotoUrl(connection, clubIdx, userIdxFromJWT, clubPhotoUrlList[i]);
                         }
 
                     }

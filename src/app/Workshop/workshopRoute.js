@@ -1,4 +1,5 @@
 const jwtMiddleware = require("../../../config/jwtMiddleware");
+const workshop = require("./workshopController");
 
 
 
@@ -16,5 +17,8 @@ module.exports = function(app) {
 
     //워크샵 상세 조회
     app.get('/app/workshops/:workshopIdx', jwtMiddleware, workshop.getWorkshop);
+
+    //워크샵 수정
+    app.patch('/app/workshops/:workshopIdx', jwtMiddleware, upload.none(), workshop.patchWorkshop);
 
 }

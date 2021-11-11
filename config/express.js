@@ -29,6 +29,7 @@ module.exports = function () {
     require('../src/app/Community/communityRoute')(app);
     require('../src/app/Club/clubRoute')(app);
     require('../src/app/Workshop/workshopRoute')(app);
+    require('../src/app/Post/postRoute')(app);
 
     return app;
 };

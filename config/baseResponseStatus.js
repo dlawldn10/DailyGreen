@@ -15,6 +15,7 @@ module.exports = {
     VERIFY_PHONENUMBER_SUCCESS : { "isSuccess": true, "code": 1007, "message":"휴대전화 인증 성공." },
     SEND_SMS_SUCCESS : { "isSuccess": true, "code": 1008, "message":"SMS 문자 전송 성공." },
     UPDATE_CLUB_SUCCESS : { "isSuccess": true, "code": 1009, "message":"모임 수정 성공." },
+    UPDATE_WORKSHOP_SUCCESS : { "isSuccess": true, "code": 1010, "message":"워크샵 수정 성공." },
 
 
     //Request error
@@ -55,29 +56,19 @@ module.exports = {
     CLUBIDX_EMPTY : { "isSuccess": false, "code": 2029, "message": "clubIdx을(를) 입력해주세요." },
     WORKSHOPIDX_EMPTY : { "isSuccess": false, "code": 2030, "message": "workshopIdx을(를) 입력해주세요." },
 
+    POSTIDX_EMPTY : { "isSuccess": false, "code": 2031, "message": "postIdx를 인식할 수 없습니다." },
+    POST_PHOTOLIST_EMPTY : { "isSuccess": false, "code": 2032, "message": "postPhotoList를 인식할 수 없습니다." },
+    COMMENTIDX_EMPTY : { "isSuccess": false, "code": 2033, "message": "commentIdx를 인식할 수 없습니다." },
+    FROM_ACCOUNTIDX_EMPTY : { "isSuccess": false, "code": 2034, "message": "fromAccountIdx를 인식할 수 없습니다." },
+    TO_ACCOUNTIDX_EMPTY : { "isSuccess": false, "code": 2035, "message": "toAccountIdx를 인식할 수 없습니다." },
+
+    PAGECOUNT_WRONG : { "isSuccess": false, "code": 2036, "message": "잘못된 페이지 호출입니다." },
+    NO_VERIFY_REQUEST : { "isSuccess": false, "code": 2037, "message": "인증 요청 내역이 없습니다. 인증번호를 다시 요청해주세요." },
+    VERIFY_CODE_WRONG : { "isSuccess": false, "code": 2038, "message": "인증번호가 일치하지 않습니다." },
+
+    TOO_MUCH_PHOTOS : { "isSuccess": false, "code": 2039, "message": "사진의 갯수가 너무 많습니다. 비정기적 모임은 최대 1장, 정기적 모임은 최대 5장입니다." },
 
 
-
-    STORYIDX_EMPTY : { "isSuccess": false, "code": 2010, "message": "storyIdx를 인식할 수 없습니다." },
-    POSTIDX_EMPTY : { "isSuccess": false, "code": 2011, "message": "postIdx를 인식할 수 없습니다." },
-    POST_PHOTOLIST_EMPTY : { "isSuccess": false, "code": 2012, "message": "postPhotoList를 인식할 수 없습니다." },
-    COMMENTIDX_EMPTY : { "isSuccess": false, "code": 2013, "message": "commentIdx를 인식할 수 없습니다." },
-    FROM_ACCOUNTIDX_EMPTY : { "isSuccess": false, "code": 2016, "message": "fromAccountIdx를 인식할 수 없습니다." },
-    TO_ACCOUNTIDX_EMPTY : { "isSuccess": false, "code": 2017, "message": "toAccountIdx를 인식할 수 없습니다." },
-
-    PROFILEPHOTO_EMPTY : { "isSuccess": false, "code": 2018, "message": "profilePhotoUrl를 인식할 수 없습니다." },
-    NAME_EMPTY : { "isSuccess": false, "code": 2019, "message": "name을 인식할 수 없습니다." },
-    ACCOUNTNAME_EMPTY : { "isSuccess": false, "code": 2020, "message": "accountName을 인식할 수 없습니다." },
-    BIO_EMPTY : { "isSuccess": false, "code": 2021, "message": "bio를 인식할 수 없습니다." },
-    USERIDX_EMPTY : { "isSuccess": false, "code": 2022, "message": "userIdx를 인식할 수 없습니다." },
-    ACTION_EMPTY : { "isSuccess": false, "code": 2024, "message": "action을 입력해 주세요." },
-    ACTION_WRONG : { "isSuccess": false, "code": 2025, "message": "action을 바르게 입력해 주세요." },
-
-    PAGECOUNT_WRONG : { "isSuccess": false, "code": 2026, "message": "잘못된 페이지 호출입니다." },
-    NO_VERIFY_REQUEST : { "isSuccess": false, "code": 2027, "message": "인증 요청 내역이 없습니다. 인증번호를 다시 요청해주세요." },
-    VERIFY_CODE_WRONG : { "isSuccess": false, "code": 2028, "message": "인증번호가 일치하지 않습니다." },
-
-    COMMENT_CONTENT_EMPTY : { "isSuccess": false, "code": 2015, "message": "댓글 내용을 입력해주세요." },
 
 
     // Response error

@@ -32,11 +32,11 @@ async function insertWorkshopPhotoUrl(connection, clubIdx, userIdx, url) {
 //해시태그 삽입
 async function insertHashTag(connection, tagName) {
     const insertHashTagQuery = `
-        INSERT IGNORE INTO HashTags(tagName) VALUES (?);
+        INSERT INTO HashTags(tagName) VALUES (?);
         `;
     const insertHashTagRow = await connection.query(
         insertHashTagQuery,
-        [tagName, tagName]
+        tagName
     );
     return insertHashTagRow[0];
 
@@ -46,7 +46,7 @@ async function insertHashTag(connection, tagName) {
 async function selectTagByTagName(connection, tagName) {
     //for 문으로 입력한 태그들의 인덱스를 가져온다.
     const selectTagQuery = `
-        SELECT tagIdx FROM HashTags WHERE tagName = ? AND status = 'ACTIVE';
+        SELECT tagIdx, COUNT(*) as Cnt FROM HashTags WHERE tagName = ? AND status = 'ACTIVE';
     `;
 
     const selectTagRow = await connection.query(
@@ -58,7 +58,7 @@ async function selectTagByTagName(connection, tagName) {
 }
 
 //워크샵 태그에 등록하기
-async function insertWorkshopHashTags(connection, tagIdx, clubIdx) {
+async function insertWorkshopTags(connection, tagIdx, workshopIdx) {
 
     const insertStoryTagQuery = `
         INSERT INTO WorkshopHashTags(tagIdx, workshopIdx) VALUES (?, ?);
@@ -66,7 +66,7 @@ async function insertWorkshopHashTags(connection, tagIdx, clubIdx) {
 
     const insertStoryTagRow = await connection.query(
         insertStoryTagQuery,
-        [tagIdx, clubIdx]
+        [tagIdx, workshopIdx]
     );
 
     return insertStoryTagRow[0];
@@ -258,13 +258,83 @@ async function selectWorkshopPhotoUrls(connection, workshopIdx){
 }
 
 
+async function updateWorkshopInfo(connection, updateWorkshopInfoParams){
+    const updateWorkshopInfoQuery = `
+        UPDATE Workshops SET communityIdx = ?, userIdx = ?, workshopName =?,
+                         bio = ?, maxPeopleNum = ?, \`when\` = ?,
+                         locationIdx = ?, locationDetail = ?, kakaoChatLink =?
+        WHERE workshopIdx = ? AND status = 'ACTIVE';
+    `;
+
+    const updateClubInfoRow = await connection.query(
+        updateWorkshopInfoQuery,
+        updateWorkshopInfoParams
+    );
+
+    return updateClubInfoRow[0];
+}
+
+
+async function updateWorkshopFeeInfo(connection, workshopIdx, fee, feeType){
+    const updateClubFeeInfoQuery = `
+        UPDATE WorkshopEntranceFees SET feeType = ?, fee = ? WHERE workshopIdx = ? AND status = 'ACTIVE';
+    `;
+
+    const updateClubFeeInfoRow = await connection.query(
+        updateClubFeeInfoQuery,
+        [feeType, fee, workshopIdx]
+    );
+
+    return updateClubFeeInfoRow[0];
+}
+
+
+async function updateWorkshopTags(connection, newStatus, workshopIdx){
+    const updateClubFeeInfoQuery = `
+        UPDATE WorkshopHashTags SET status = ? WHERE workshopIdx = ? AND status = 'ACTIVE';
+    `;
+
+    const updateClubFeeInfoRow = await connection.query(
+        updateClubFeeInfoQuery,
+        [newStatus, workshopIdx]
+    );
+
+    return updateClubFeeInfoRow[0];
+}
+
+
+async function selectWorkshopTagBytagIdx(connection, workshopIdx, tagIdx){
+    const countClubTagsQuery = `
+        SELECT COUNT(*) as Cnt FROM WorkshopHashTags WHERE workshopIdx = ? AND tagIdx = ?;
+    `;
+
+    const updateClubFeeInfoRow = await connection.query(
+        countClubTagsQuery,
+        [workshopIdx, tagIdx]
+    );
+
+    return updateClubFeeInfoRow[0];
+}
+
+async function updateOneWorkshopTag(connection, newStatus, workshopIdx, tagIdx){
+    const updateClubFeeInfoQuery = `
+        UPDATE WorkshopHashTags SET status = ? WHERE workshopIdx = ? AND tagIdx = ?;
+    `;
+
+    const updateClubFeeInfoRow = await connection.query(
+        updateClubFeeInfoQuery,
+        [newStatus, workshopIdx, tagIdx]
+    );
+
+    return updateClubFeeInfoRow[0];
+}
 
 module.exports = {
     insertWorkshopInfo,
     insertWorkshopPhotoUrl,
     insertHashTag,
     selectTagByTagName,
-    insertWorkshopHashTags,
+    insertWorkshopTags,
     insertWorkshopFeeInfo,
     selectWorkshopList,
     selectWorkshopFollowers,
@@ -272,6 +342,12 @@ module.exports = {
     selectWorkshopTags,
     selectWorkshopByWorkshopIdx,
     selectWorkshopPhotoUrls,
-    selectFollowingUsersProfile
+    selectFollowingUsersProfile,
+    updateWorkshopInfo,
+    updateWorkshopFeeInfo,
+    updateWorkshopTags,
+    selectWorkshopTagBytagIdx,
+    updateOneWorkshopTag
+
 
 };

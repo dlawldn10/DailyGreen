@@ -33,11 +33,11 @@ async function insertClubPhotoUrl(connection, clubIdx, userIdx, url) {
 //해시태그 삽입
 async function insertHashTag(connection, tagName) {
     const insertHashTagQuery = `
-        INSERT IGNORE INTO HashTags(tagName) VALUES (?);
+        INSERT INTO HashTags(tagName) VALUES (?);
         `;
     const insertHashTagRow = await connection.query(
         insertHashTagQuery,
-        [tagName, tagName]
+        tagName
     );
     return insertHashTagRow[0];
 
@@ -47,7 +47,7 @@ async function insertHashTag(connection, tagName) {
 async function selectTagByTagName(connection, tagName) {
     //for 문으로 입력한 태그들의 인덱스를 가져온다.
     const selectTagQuery = `
-        SELECT tagIdx FROM HashTags WHERE tagName = ? AND status = 'ACTIVE';
+        SELECT tagIdx, COUNT(*) as Cnt FROM HashTags WHERE tagName = ? AND status = 'ACTIVE';
     `;
 
     const selectTagRow = await connection.query(

@@ -68,47 +68,49 @@ exports.postClub = async function (req, res) {
     else if (!clubInfo.when)
         return res.send(response(baseResponse.WHEN_EMPTY));
 
+    const createClubResponse = await clubService.createClub(userIdxFromJWT, clubInfo);
+    return res.send(createClubResponse);
 
-    const clubPhotoUrlList = [];
-    for(let i=0;i<clubInfo.clubPhotoList.length;i++) {
-
-        //사진 업로드
-        const bufferStream = new stream.PassThrough();
-        bufferStream.end(new Buffer.from(clubInfo.clubPhotoList[i].buffer, 'ascii'));
-        const fileName = Date.now() + `_${i+1}`;
-
-        const file = firebaseAdmin.storage().bucket().file('Clubs/ClubImages/' + fileName);
-
-        await bufferStream.pipe(file.createWriteStream({
-
-            metadata: {contentType: clubInfo.clubPhotoList[i].mimetype}
-
-        })).on('error', (eer) => {
-
-            console.log(eer);
-
-        }).on('finish', () => {
-
-            console.log(fileName + " finish");
-            //업로드한 사진 url다운
-            const config = {action: "read", expires: '03-17-2030'};
-            file.getSignedUrl(config,
-                async (err, url) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                    // console.log(url);
-                    clubPhotoUrlList.push(url);
-                    if(clubPhotoUrlList.length == clubInfo.clubPhotoList.length){
-                        //타이밍 맞추기 위한 if문.
-                        delete clubInfo.clubPhotoList;
-                        const createClubPhotosResponse = await clubService.createClub(userIdxFromJWT, clubInfo, clubPhotoUrlList);
-                        return res.send(createClubPhotosResponse);
-                        // return res.send(response(baseResponse.SUCCESS));
-                    }
-                });
-        });
-    }
+    // const clubPhotoUrlList = [];
+    // for(let i=0;i<clubInfo.clubPhotoList.length;i++) {
+    //
+    //     //사진 업로드
+    //     const bufferStream = new stream.PassThrough();
+    //     bufferStream.end(new Buffer.from(clubInfo.clubPhotoList[i].buffer, 'ascii'));
+    //     const fileName = Date.now() + `_${i+1}`;
+    //
+    //     const file = firebaseAdmin.storage().bucket().file('Clubs/ClubImages/' + fileName);
+    //
+    //     await bufferStream.pipe(file.createWriteStream({
+    //
+    //         metadata: {contentType: clubInfo.clubPhotoList[i].mimetype}
+    //
+    //     })).on('error', (eer) => {
+    //
+    //         console.log(eer);
+    //
+    //     }).on('finish', () => {
+    //
+    //         console.log(fileName + " finish");
+    //         //업로드한 사진 url다운
+    //         const config = {action: "read", expires: '03-17-2030'};
+    //         file.getSignedUrl(config,
+    //             async (err, url) => {
+    //                 if (err) {
+    //                     console.log(err);
+    //                 }
+    //                 // console.log(url);
+    //                 clubPhotoUrlList.push(url);
+    //                 if(clubPhotoUrlList.length == clubInfo.clubPhotoList.length){
+    //                     //타이밍 맞추기 위한 if문.
+    //                     delete clubInfo.clubPhotoList;
+    //                     const createClubPhotosResponse = await clubService.createClub(userIdxFromJWT, clubInfo, clubPhotoUrlList);
+    //                     return res.send(createClubPhotosResponse);
+    //                     // return res.send(response(baseResponse.SUCCESS));
+    //                 }
+    //             });
+    //     });
+    // }
 
 
 
@@ -172,7 +174,6 @@ exports.patchClub = async function (req, res){
         clubIdx: req.params.clubIdx,
         communityIdx : req.body.communityIdx,
         clubName : req.body.name,
-        clubPhotoList : req.files,
         tagList : req.body.tagList,
         bio : req.body.bio,
         maxPeopleNum: req.body.maxPeopleNum,
@@ -193,8 +194,6 @@ exports.patchClub = async function (req, res){
         return res.send(response(baseResponse.COMMUNITYIDX_EMPTY));
     else if (!clubInfo.clubName)
         return res.send(response(baseResponse.CLUBNAME_EMPTY));
-    else if (!clubInfo.clubPhotoList)
-        return res.send(response(baseResponse.CLUBPHOTOURLLIST_EMPTY));
     else if (!clubInfo.tagList)
         return res.send(response(baseResponse.TAGLIST_EMPTY));
     else if (!clubInfo.bio)
@@ -219,49 +218,9 @@ exports.patchClub = async function (req, res){
         return res.send(response(baseResponse.CLUBIDX_EMPTY));
 
 
-    const createClubPhotosResponse = await clubService.updateClub(userIdxFromJWT, clubInfo);
-    return res.send(createClubPhotosResponse);
+    const updateClubResponse = await clubService.updateClub(userIdxFromJWT, clubInfo);
+    return res.send(updateClubResponse);
 
-    // const clubPhotoUrlList = [];
-    // for(let i=0;i<clubInfo.clubPhotoList.length;i++) {
-    //
-    //     //사진 업로드
-    //     const bufferStream = new stream.PassThrough();
-    //     bufferStream.end(new Buffer.from(clubInfo.clubPhotoList[i].buffer, 'ascii'));
-    //     const fileName = Date.now() + `_${i+1}`;
-    //
-    //     const file = firebaseAdmin.storage().bucket().file('Clubs/ClubImages/' + fileName);
-    //
-    //     await bufferStream.pipe(file.createWriteStream({
-    //
-    //         metadata: {contentType: clubInfo.clubPhotoList[i].mimetype}
-    //
-    //     })).on('error', (eer) => {
-    //
-    //         console.log(eer);
-    //
-    //     }).on('finish', () => {
-    //
-    //         console.log(fileName + " finish");
-    //         //업로드한 사진 url다운
-    //         const config = {action: "read", expires: '03-17-2030'};
-    //         file.getSignedUrl(config,
-    //             async (err, url) => {
-    //                 if (err) {
-    //                     console.log(err);
-    //                 }
-    //                 // console.log(url);
-    //                 clubPhotoUrlList.push(url);
-    //                 if(clubPhotoUrlList.length == clubInfo.clubPhotoList.length){
-    //                     //타이밍 맞추기 위한 if문.
-    //                     delete clubInfo.clubPhotoList;
-    //                     const createClubPhotosResponse = await clubService.updateClub(userIdxFromJWT, clubInfo, clubPhotoUrlList);
-    //                     return res.send(createClubPhotosResponse);
-    //                     // return res.send(response(baseResponse.SUCCESS));
-    //                 }
-    //             });
-    //     });
-    // }
 
 }
 
