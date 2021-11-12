@@ -101,22 +101,31 @@ async function selectClubList(connection, communityIdx, limit, page) {
                C.locationDetail,
                C.maxPeopleNum,
                C.bio,
-               date_format(C.when, '%Y-%m-%d %h:%i') as \`when\`,
-               case WEEKDAY(C.\`when\`)
-                   when '0' then '월요일'
-                   when '1' then '화요일'
-                   when '2' then '수요일'
-                   when '3' then '목요일'
-                   when '4' then '금요일'
-                   when '5' then '토요일'
-                   when '6' then '일요일'
-                   end as day, DATEDIFF(date(C.\`when\`), now()) as Dday,
+               CONCAT(date_format(C.when, '%Y.%m.%d '),
+                      case WEEKDAY(C.\`when\`)
+                          when '0' then '월요일'
+                          when '1' then '화요일'
+                          when '2' then '수요일'
+                          when '3' then '목요일'
+                          when '4' then '금요일'
+                          when '5' then '토요일'
+                          when '6' then '일요일'
+                          end, ' ',
+                      case date_format(C.when, '%p')
+                          when 'PM' then '오후'
+                          when 'AM' then '오전'
+                          end, ' ',
+                      date_format(C.when, '%l시'),
+                      if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                         date_format(C.\`when\`, ' %i분')))     as \`when\`,
+               CONCAT('D-', DATEDIFF(date(C.\`when\`), now())) as Dday,
        CPU.url as clubPhoto
         FROM Clubs C
             LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U
         on C.userIdx = U.userIdx
             LEFT JOIN (SELECT clubIdx, url FROM ClubPhotoUrls GROUP BY clubIdx) CPU on C.clubIdx = CPU.clubIdx
         WHERE C.status = 'ACTIVE' AND U.status = 'ACTIVE' AND C.communityIdx = ?
+          AND DATEDIFF(date(C.\`when\`), now()) > 0
         ORDER BY C.updatedAt DESC LIMIT ?
         OFFSET ?;
     `;
@@ -196,24 +205,32 @@ async function selectClubByClubIdx(connection, clubIdx){
                C.locationDetail,
                C.maxPeopleNum,
                C.bio,
-               date_format(C.when, '%Y-%m-%d %h:%i') as \`when\`,
-               case WEEKDAY(C.\`when\`)
-                   when '0' then '월요일'
-                   when '1' then '화요일'
-                   when '2' then '수요일'
-                   when '3' then '목요일'
-                   when '4' then '금요일'
-                   when '5' then '토요일'
-                   when '6' then '일요일'
-                   end as day,
-       DATEDIFF(date(C.\`when\`), now()) as Dday,
-       CEF.feeType,
-       CEF.fee
+               CONCAT(date_format(C.when, '%Y.%m.%d '),
+                      case WEEKDAY(C.\`when\`)
+                          when '0' then '월요일'
+                          when '1' then '화요일'
+                          when '2' then '수요일'
+                          when '3' then '목요일'
+                          when '4' then '금요일'
+                          when '5' then '토요일'
+                          when '6' then '일요일'
+                          end, ' ',
+                      case date_format(C.when, '%p')
+                          when 'PM' then '오후'
+                          when 'AM' then '오전'
+                          end, ' ',
+                      date_format(C.when, '%l시'),
+                      if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                         date_format(C.\`when\`, ' %i분')))     as \`when\`,
+               CONCAT('D-', DATEDIFF(date(C.\`when\`), now())) as Dday,
+               CEF.feeType,
+               CONCAT(CEF.fee, '원') as fee
         FROM Clubs C
-            LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U
-        on C.userIdx = U.userIdx
-            LEFT JOIN (SELECT clubIdx, feeType, fee FROM ClubEntranceFees) CEF on C.clubIdx = CEF.clubIdx
-        WHERE C.status = 'ACTIVE' AND U.status = 'ACTIVE' AND C.clubIdx = ?;
+                 LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U on C.userIdx = U.userIdx
+                 LEFT JOIN (SELECT clubIdx, feeType, fee FROM ClubEntranceFees) CEF on C.clubIdx = CEF.clubIdx
+        WHERE C.status = 'ACTIVE'
+          AND U.status = 'ACTIVE'
+          AND C.clubIdx = ?;
     `;
 
     const selectClubRow = await connection.query(

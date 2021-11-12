@@ -14,12 +14,12 @@ async function selectNickname(connection, nickname) {
 // 유저 생성
 async function insertUserInfo(connection, userInfo) {
   const insertUserInfoQuery = `
-    INSERT INTO Users(profilePhotoUrl, nickname, bio)
-    VALUES (?, ?, ?);
+    INSERT INTO Users(nickname, bio)
+    VALUES (?, ?);
   `;
   const insertUserInfoRow = await connection.query(
       insertUserInfoQuery,
-      [userInfo.profilePhoto, userInfo.nickname, userInfo.bio]
+      [userInfo.nickname, userInfo.bio]
   );
 
   return insertUserInfoRow;
@@ -68,7 +68,7 @@ async function insertFollows(connection, from, to) {
 // 유저 계정 상태 체크
 async function selectUserAccount(connection, accountInfoRowParams) {
   const selectUserAccountQuery = `
-        SELECT status, userIdx, accountIdx
+        SELECT status, userIdx, accountIdx, password
         FROM Accounts 
         WHERE sort = ? AND email = ?;`;
   const selectUserAccountRow = await connection.query(
@@ -114,19 +114,46 @@ async function selectCloseEvents(connection, userIdx) {
 
 
 
+// 프사 삽입
+async function insertProfilePhotoUrl(connection, photoUrl, userIdx) {
+  const selectUserAccountQuery = `
+    UPDATE Users SET profilePhotoUrl = ? WHERE userIdx = ?;
+  `;
+  const selectUserAccountRow = await connection.query(
+      selectUserAccountQuery,
+      [photoUrl, userIdx]
+  );
+  return selectUserAccountRow[0];
+}
 
 
 
 
+// 패스워드 체크
+async function selectUserPassword(connection, selectUserPasswordParams) {
+  const selectUserPasswordQuery = `
+        SELECT password
+        FROM Accounts 
+        WHERE userIdx = ? AND accountIdx = ?;`;
+  const selectUserPasswordRow = await connection.query(
+      selectUserPasswordQuery,
+      selectUserPasswordParams
+  );
+
+  return selectUserPasswordRow;
+};
 
 
-module.exports = {
+
+  module.exports = {
   insertUserInfo,
   selectUserAccount,
   selectNickname,
   insertAccountInfo,
   insertFollows,
   selectSimpleUserProfile,
-  selectCloseEvents
+  selectCloseEvents,
+  insertProfilePhotoUrl,
+  selectUserPassword
 
 };

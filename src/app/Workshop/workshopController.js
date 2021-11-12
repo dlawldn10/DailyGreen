@@ -37,10 +37,10 @@ exports.postWorkshop = async function (req, res) {
         return res.send(response(baseResponse.COMMUNITYIDX_EMPTY));
     else if (!workshopInfo.workshopName)
         return res.send(response(baseResponse.CLUBNAME_EMPTY));
-    else if (!workshopInfo.workshopPhotoList)
-        return res.send(response(baseResponse.CLUBPHOTOURLLIST_EMPTY));
+    // else if (!workshopInfo.workshopPhotoList)
+    //     return res.send(response(baseResponse.CLUBPHOTOURLLIST_EMPTY));
     else if (!workshopInfo.tagList)
-        return res.send(response(baseResponse.TAGLIST_EMPTY));
+        workshopInfo.tagList = [''];
     else if (!workshopInfo.bio)
         return res.send(response(baseResponse.BIO_EMPTY));
     else if (!workshopInfo.maxPeopleNum)
@@ -50,7 +50,7 @@ exports.postWorkshop = async function (req, res) {
     else if (!workshopInfo.fee)
         return res.send(response(baseResponse.FEE_EMPTY));
     else if (!workshopInfo.kakaoChatLink)
-        return res.send(response(baseResponse.KAKAOCAHTLINK_EMPTY));
+        workshopInfo.kakaoChatLink = '';
     else if (!workshopInfo.locationIdx)
         return res.send(response(baseResponse.LOCATIONIDX_EMPTY));
     else if (!workshopInfo.locationDetail)

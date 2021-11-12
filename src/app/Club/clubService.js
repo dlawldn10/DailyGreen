@@ -42,8 +42,14 @@ exports.createClub = async function (userIdxFromJWT, clubInfo) {
         //모임 회비 정보 넣기
         const insertClubFeeInfoRow = await clubDao.insertClubFeeInfo(connection, clubIdx, clubInfo.fee, clubInfo.feeType);
 
-        //사진 게시
-        const insertClubPhotoUrlRow = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx);
+        if(clubInfo.clubPhotoList.length === 0){
+            //기본 이미지 삽입
+            const defaultUrl = 'https://firebasestorage.googleapis.com/v0/b/dailygreen-6e49d.appspot.com/o/Clubs%2FClubImages%2Fdummyimg_if_no_img_on_m.jpg?alt=media&token=c2894173-0832-4126-b212-79fb935478b5';
+            const insertClubPhotoUrlRow = await clubDao.insertClubPhotoUrl(connection, clubIdx, userIdxFromJWT, defaultUrl);
+        }else{
+            //사진 게시
+            const insertClubPhotoUrlRow = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx);
+        }
 
         if (clubInfo.isRegular == 0) {
             //비정기 모임일때 -> 태그 없음, 사진 한장

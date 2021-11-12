@@ -55,6 +55,17 @@ exports.retrieveEvents = async function (userIdx) {
   return selectCloseCommunityResult;
 };
 
+//비밀번호 체크
+exports.passwordCheck = async function (selectUserPasswordParams) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const passwordCheckResult = await userDao.selectUserPassword(
+      connection,
+      selectUserPasswordParams
+  );
+  connection.release();
+  return passwordCheckResult[0];
+};
+
 
 
 

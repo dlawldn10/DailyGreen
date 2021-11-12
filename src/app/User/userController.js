@@ -15,13 +15,6 @@ const request = require("request");
 const crypto = require("crypto");
 
 
-let firebaseAdmin = admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    authDomain: "dailygreen-6e49d.firebaseapp.com",
-    storageBucket: 'dailygreen-6e49d.appspot.com'
-});
-
-
 // res.redirect('download?imgName=' + image.originalname);
 
 //카카오 회원가입
@@ -33,11 +26,10 @@ exports.postKaKaoUsers = async function (req ,res) {
     //3. 프사 업로드하고
     //4. 계정 생성
 
-    //자체 회원가입인 경우
-    //-> 별도 서비스 함수 만드는게 나을 듯 함.
-    //이메일, 비밀번호, 전화번호 추가. accesstoken 없음.
 
     const userInfo = {
+        password: 'tmpPassword',
+        phoneNum: '00000000000',
         profilePhoto: req.file,
         nickname: req.body.nickname,
         bio: req.body.bio
@@ -55,6 +47,9 @@ exports.postKaKaoUsers = async function (req ,res) {
         return res.send(response(baseResponse.SIGNUP_BIO_EMPTY));
     else if (!accessTokenInfo.accessToken)
         return res.send(response(baseResponse.SIGNUP_ACCESSTOKEN_EMPTY));
+    else if (!userInfo.profilePhoto)
+        return res.send(response(baseResponse.SIGNUP_PROFILEPHOTO_EMPTY));
+
 
 
 
@@ -81,51 +76,8 @@ exports.postKaKaoUsers = async function (req ,res) {
     });
 
 
-    //프사 설정
-    if (!userInfo.profilePhoto){
-        //기본 프사로 설정하겠다.
-        userInfo.profilePhoto = '기본 프사 url';
-
-        const signUpResponse = await userService.createUser('kakao', userInfo, accessTokenInfo);
-        return res.send(signUpResponse);
-
-    }else{
-        //새로운 프사로 설정한다.
-
-        //사진 업로드
-        const bufferStream = new stream.PassThrough();
-        bufferStream.end(new Buffer.from(userInfo.profilePhoto.buffer, 'ascii'));
-        const fileName = Date.now();
-
-        const file = firebaseAdmin.storage().bucket().file('Users/ProfileImage/' + fileName);
-
-        bufferStream.pipe(file.createWriteStream({
-
-            metadata: {contentType: userInfo.profilePhoto.mimetype}
-
-        })).on('error', (eer) => {
-
-            console.log(eer);
-
-        }).on('finish', () => {
-
-            console.log(fileName + " finish");
-            //업로드한 사진 url다운
-            const config = {action: "read", expires: '03-17-2030'};
-            file.getSignedUrl(config,
-                async (err, url) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                    // console.log(url);
-                    userInfo.profilePhoto = url;
-                    const signUpResponse = await userService.createUser('kakao', userInfo, accessTokenInfo);
-                    return res.send(signUpResponse);
-                });
-        });
-
-
-    }
+    const signUpResponse = await userService.createUser('kakao', userInfo, accessTokenInfo);
+    return res.send(signUpResponse);
 
 };
 
@@ -299,9 +251,84 @@ exports.getEvents = async function (req, res) {
 };
 
 
+//자체 회원가입
+exports.postOriginUser = async function (req ,res) {
+
+    //자체 회원가입인 경우
+    //-> 별도 서비스 함수 만드는게 나을 듯 함.
+    //이메일, 비밀번호, 전화번호 추가. accesstoken 없음.
+
+    const userInfo = {
+        password: req.body.password,
+        phoneNum: req.body.phoneNum,
+        profilePhoto: req.file,
+        nickname: req.body.nickname,
+        bio: req.body.bio
+    }
+
+    const accessTokenInfo = {
+        email: req.body.email
+    }
+
+
+    // 빈 값 체크
+    if (!accessTokenInfo.email)
+        return res.send(response(baseResponse.SIGNUP_EMAIL_EMPTY));
+    else if (!userInfo.password)
+        return res.send(response(baseResponse.SIGNUP_PASSWORD_EMPTY));
+    else if (!userInfo.phoneNum)
+        return res.send(response(baseResponse.SIGNUP_PHONENUM_EMPTY));
+    else if (!userInfo.profilePhoto)
+        return res.send(response(baseResponse.SIGNUP_PROFILEPHOTO_EMPTY));
+    else if (!userInfo.nickname)
+        return res.send(response(baseResponse.SIGNUP_NICKNAME_EMPTY));
+    else if (!userInfo.bio)
+        return res.send(response(baseResponse.SIGNUP_BIO_EMPTY));
+
+
+    // 이메일 형식 체크 (by 정규표현식)
+    if (!regexEmail.test(accessTokenInfo.email))
+        return res.send(response(baseResponse.SIGNUP_EMAIL_TYPE_ERROR));
+
+    // 전화번호 형식(길이) 체크
+    if (userInfo.phoneNum.length > 11 || /^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}/.test(userInfo.phoneNum))
+        return res.send(response(baseResponse.SIGNUP_PHONENUM_TYPE_ERROR));
+
+
+    const signUpResponse = await userService.createUser('origin', userInfo, accessTokenInfo);
+    return res.send(signUpResponse);
 
 
 
+
+};
+
+
+//자체 로그인
+exports.originLogin = async function (req, res) {
+
+    const userInfo = {
+        email: req.body.email,
+        password: req.body.password
+    }
+
+    // 빈 값 체크
+    if (!userInfo.password)
+        return res.send(response(baseResponse.SIGNUP_PASSWORD_EMPTY));
+    else if (!userInfo.email)
+        return res.send(response(baseResponse.SIGNUP_EMAIL_EMPTY));
+
+
+    // 이메일 형식 체크 (by 정규표현식)
+    if (!regexEmail.test(userInfo.email))
+        return res.send(response(baseResponse.SIGNUP_EMAIL_TYPE_ERROR));
+
+
+    const logInResponse = await userService.postOriginSignIn(userInfo);
+    return res.send(logInResponse);
+
+
+};
 
 
 

@@ -1,3 +1,4 @@
+const user = require("./userController");
 
 
 module.exports = function(app){
@@ -10,7 +11,8 @@ module.exports = function(app){
     //회원 가입 전 닉네임 중복 검사
     app.post('/app/users/nicknames', upload.none(), user.postNicknameCheck);
 
-    //자체 회원가입
+
+
     //전화번호 인증번호 발급
     app.post('/app/users/auth', upload.none(), user.postPhoneNumberCheck);
     //전화번호 인증번호 비교
@@ -24,6 +26,11 @@ module.exports = function(app){
     // 2. 존재하지 않는 계정이면 카카오 계정으로 회원가입
     app.post('/app/users/kakao', upload.single('profilePhoto'), user.postKaKaoUsers);
 
+    //자체 회원가입
+    app.post('/app/users', upload.single('profilePhoto'), user.postOriginUser);
+
+    //자체 로그인
+    app.post('/app/login', upload.none(), user.originLogin);
 
     // //홈화면 - 이벤트 배너
     // app.get('/app/users/events', user.getEvents);

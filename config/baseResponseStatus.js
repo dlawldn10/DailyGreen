@@ -27,7 +27,7 @@ module.exports = {
 
     SIGNUP_PROFILEPHOTO_EMPTY : { "isSuccess": false, "code": 2004, "message":"프로필 사진을(를) 등록해주세요" },
     SIGNUP_NICKNAME_EMPTY : { "isSuccess": false, "code": 2005, "message":"닉네임을(를) 등록해주세요" },
-    SIGNUP_BIO_EMPTY : { "isSuccess": false, "code": 2006, "message":"자기소개를(를) 등록해주세요" },
+    SIGNUP_BIO_EMPTY : { "isSuccess": false, "code": 2006, "message":"자기소개을(를) 등록해주세요" },
 
     SIGNUP_REDUNDANT_NICKNAME : { "isSuccess": false, "code": 2007, "message":"중복된 닉네임입니다." },
     SIGNUP_NICKNAME_LENGTH : { "isSuccess": false, "code": 2008, "message":"닉네임은 9자리 미만으로 입력해주세요." },
@@ -37,7 +37,6 @@ module.exports = {
     SIGNUP_SORT_WRONG : { "isSuccess": false, "code": 2012, "message":"로그인 종류가 올바르지 않습니다." },
 
     SIGNUP_ORIGIN_NOT_SUPPORTED : { "isSuccess": false, "code": 2013, "message":"현재는 지원하지 않는 기능입니다. 소셜 회원가입을 진행해주세요." },
-
 
 
     ACCOUNTIDX_EMPTY : { "isSuccess": false, "code": 2014, "message": "accountIdx을(를) 입력해주세요." },
@@ -71,6 +70,11 @@ module.exports = {
     TOO_MUCH_PHOTOS : { "isSuccess": false, "code": 2039, "message": "사진의 갯수가 너무 많습니다. 비정기적 모임은 최대 1장, 정기적 모임은 최대 5장입니다." },
     FEED_TOO_MUCH_PHOTOS : { "isSuccess": false, "code": 2040, "message": "사진의 갯수가 너무 많습니다. 한 피드에 게시할 수 있는 사진은 최대 5장입니다." },
 
+    SIGNUP_EMAIL_EMPTY : { "isSuccess": false, "code": 2041, "message":"이메일을(를) 입력해주세요." },
+    SIGNUP_PASSWORD_EMPTY : { "isSuccess": false, "code": 2042, "message":"비밀번호을(를) 입력해주세요." },
+    SIGNUP_PHONENUM_EMPTY : { "isSuccess": false, "code": 2043, "message":"전화번호을(를) 입력해주세요." },
+    SIGNUP_EMAIL_TYPE_ERROR : { "isSuccess": false, "code": 2044, "message":"이메일 형식이 올바르지 않습니다." },
+    SIGNUP_PHONENUM_TYPE_ERROR : { "isSuccess": false, "code": 2045, "message":"전화번호 형식이 올바르지 않습니다. '-' 없이 입력해주세요." },
 
 
 
