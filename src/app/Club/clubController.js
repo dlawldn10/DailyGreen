@@ -68,6 +68,15 @@ exports.postClub = async function (req, res) {
     else if (!clubInfo.when)
         return res.send(response(baseResponse.WHEN_EMPTY));
 
+    if (clubInfo.isRegular == 0 && clubInfo.clubPhotoList.length > 1) {
+        //비정기 모임인데 사진이 2개 이상일때
+        return res.send(response(baseResponse.TOO_MUCH_PHOTOS));
+    }
+    else if(clubInfo.isRegular == 1 && clubInfo.clubPhotoList.length > 5){
+        //정기 모임인데 사진이 6개 이상일때
+        return res.send(response(baseResponse.TOO_MUCH_PHOTOS));
+    }
+
     const createClubResponse = await clubService.createClub(userIdxFromJWT, clubInfo);
     return res.send(createClubResponse);
 
@@ -135,7 +144,7 @@ exports.getClubList = async function (req, res){
 
         page = 0;
 
-    }else if(page == 0){
+    }else if(page == 0 || !page){
 
         return res.send(errResponse(baseResponse.PAGECOUNT_WRONG));
     }else{
@@ -171,7 +180,7 @@ exports.patchClub = async function (req, res){
 
     const userIdxFromJWT = req.verifiedToken.userIdx;
     const clubInfo = {
-        clubIdx: req.params.clubIdx,
+        clubIdx: req.body.clubIdx,
         communityIdx : req.body.communityIdx,
         clubName : req.body.name,
         tagList : req.body.tagList,

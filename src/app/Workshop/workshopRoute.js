@@ -19,6 +19,6 @@ module.exports = function(app) {
     app.get('/app/workshops/:workshopIdx', jwtMiddleware, workshop.getWorkshop);
 
     //워크샵 수정
-    app.patch('/app/workshops/:workshopIdx', jwtMiddleware, upload.none(), workshop.patchWorkshop);
+    app.patch('/app/workshops', jwtMiddleware, upload.none(), workshop.patchWorkshop);
 
 }

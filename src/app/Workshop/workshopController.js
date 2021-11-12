@@ -122,7 +122,7 @@ exports.patchWorkshop = async function (req, res){
 
     const userIdxFromJWT = req.verifiedToken.userIdx;
     const workshopInfo = {
-        workshopIdx: req.params.workshopIdx,
+        workshopIdx: req.body.workshopIdx,
         communityIdx : req.body.communityIdx,
         workshopName : req.body.name,
         workshopPhotoList : req.files,

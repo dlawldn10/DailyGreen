@@ -20,37 +20,34 @@ if (!admin.apps.length) {
 //게시물 올리기
 exports.createPost = async function (reqBody, userIdxFromJWT) {
     const connection = await pool.getConnection(async (conn) => conn);
-    let resultResponse = response(baseResponse.SUCCESS);
+    let resultResponse = response(baseResponse.CREATE_FEED_SUCCESS);
 
     try {
 
         connection.beginTransaction();
-        const insertPostResult = await postDao.insertNewPost(connection, reqBody);
+        const insertPostResult = await postDao.insertNewPost(connection, reqBody, userIdxFromJWT);
 
-        //태그 게시
-        for(var i =0; i < reqBody.postTagList.length; i++){
-
-            const insertTagResult = await postDao.insertTag(connection, reqBody.postTagList[i]);
-            const selectTagResult = await postDao.selectTagByTagName(connection, reqBody.postTagList[i]);
-
-            const selectPostTagResult = await postDao.selectPostTagByTagIdx(connection, insertPostResult[0].insertId, selectTagResult[0].tagIdx);
-            console.log(selectPostTagResult[0].Cnt);
-            // 수정 전에 있던 태그가 있으면 status update
-            if(selectPostTagResult[0].Cnt > 0){
-                const updateTagResult = await postDao.updateOnePostTag(connection, 'ACTIVE', insertPostResult[0].insertId, selectTagResult[0].tagIdx);
-
-            }else{
-                //없으면 새로 삽입.
-                const insertStoryTagResult = await postDao.insertPostTags(connection, selectTagResult[0].tagIdx, insertPostResult[0].insertId);
-            }
-
-        }
+        // //태그 게시
+        // for(var i =0; i < reqBody.postTagList.length; i++){
+        //
+        //     const insertTagResult = await postDao.insertTag(connection, reqBody.postTagList[i]);
+        //     const selectTagResult = await postDao.selectTagByTagName(connection, reqBody.postTagList[i]);
+        //
+        //     const selectPostTagResult = await postDao.selectPostTagByTagIdx(connection, insertPostResult[0].insertId, selectTagResult[0].tagIdx);
+        //     console.log(selectPostTagResult[0].Cnt);
+        //     // 수정 전에 있던 태그가 있으면 status update
+        //     if(selectPostTagResult[0].Cnt > 0){
+        //         const updateTagResult = await postDao.updateOnePostTag(connection, 'ACTIVE', insertPostResult[0].insertId, selectTagResult[0].tagIdx);
+        //
+        //     }else{
+        //         //없으면 새로 삽입.
+        //         const insertStoryTagResult = await postDao.insertPostTags(connection, selectTagResult[0].tagIdx, insertPostResult[0].insertId);
+        //     }
+        //
+        // }
 
         //게시물 사진 게시
-        if(reqBody.postPhotoList.length > 0) {
-
-            resultResponse = uploadToFirebaseStorage(connection, resultResponse, reqBody, userIdxFromJWT, insertPostResult[0].insertId);
-        }
+        resultResponse = uploadToFirebaseStorage(connection, resultResponse, reqBody, userIdxFromJWT, insertPostResult.insertId);
 
         connection.commit();
         return resultResponse;
@@ -74,36 +71,10 @@ exports.updatePost = async function (reqBody) {
 
         connection.beginTransaction();
         const updatePostResult = await postDao.updatePost(connection, reqBody);
+
+
         connection.commit();
-
-
-        //원래 있던 PostTags의 태그들을 DELETE 하고
-        const updateTagResult = await postDao.updatePostTags(connection, 'DELETED', reqBody.postIdx);
-        connection.commit();
-
-        for(let i =0; i < reqBody.postTagList.length; i++){
-            connection.beginTransaction();
-
-            //태그를 Tags에 등록한다. 이때 같은 태그가 있으면 무시된다.
-            const insertTagResult = await postDao.insertTag(connection, reqBody.postTagList[i]);
-            //insert한 태그의 인덱스를 가지고
-            const selectTagResult = await postDao.selectTagByTagName(connection, reqBody.postTagList[i]);
-
-            // PostTags에 등록하는데
-            const selectPostTagResult = await postDao.selectPostTagByTagIdx(connection, reqBody.postIdx, selectTagResult[0].tagIdx);
-
-            // 수정 전에 있던 태그가 있으면 status update
-            if(selectPostTagResult[0].Cnt > 0){
-                const updateTagResult = await postDao.updatePostTags(connection, 'ACTIVE', reqBody.postIdx);
-
-            }else{
-                const insertStoryTagResult = await postDao.insertPostTags(connection, selectTagResult[0].tagIdx, reqBody.postIdx);
-            }
-
-            connection.commit();
-        }
-
-        return response(baseResponse.SUCCESS);
+        return response(baseResponse.UPDATE_FEED_SUCCESS);
 
 
     } catch (err) {
@@ -194,8 +165,8 @@ async function uploadToFirebaseStorage(connection, resultResponse, reqBody, user
                         for (let i = 0; i < postPhotoUrlList.length; i++) {
                             const insertClubPhotoUrlRow = await postDao.insertPostPhotoUrls(connection,
                                 postIdx,
-                                reqBody.accountIdx,
-                                reqBody.postPhotoList[i]);
+                                userIdxFromJWT,
+                                postPhotoUrlList[i]);
                         }
 
                     }

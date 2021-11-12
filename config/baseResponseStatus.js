@@ -16,6 +16,8 @@ module.exports = {
     SEND_SMS_SUCCESS : { "isSuccess": true, "code": 1008, "message":"SMS 문자 전송 성공." },
     UPDATE_CLUB_SUCCESS : { "isSuccess": true, "code": 1009, "message":"모임 수정 성공." },
     UPDATE_WORKSHOP_SUCCESS : { "isSuccess": true, "code": 1010, "message":"워크샵 수정 성공." },
+    CREATE_FEED_SUCCESS : { "isSuccess": true, "code": 1011, "message":"게시물 생성 성공." },
+    UPDATE_FEED_SUCCESS : { "isSuccess": true, "code": 1012, "message":"게시물 수정 성공." },
 
 
     //Request error
@@ -67,6 +69,7 @@ module.exports = {
     VERIFY_CODE_WRONG : { "isSuccess": false, "code": 2038, "message": "인증번호가 일치하지 않습니다." },
 
     TOO_MUCH_PHOTOS : { "isSuccess": false, "code": 2039, "message": "사진의 갯수가 너무 많습니다. 비정기적 모임은 최대 1장, 정기적 모임은 최대 5장입니다." },
+    FEED_TOO_MUCH_PHOTOS : { "isSuccess": false, "code": 2040, "message": "사진의 갯수가 너무 많습니다. 한 피드에 게시할 수 있는 사진은 최대 5장입니다." },
 
 
 

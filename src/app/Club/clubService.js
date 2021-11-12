@@ -42,14 +42,12 @@ exports.createClub = async function (userIdxFromJWT, clubInfo) {
         //모임 회비 정보 넣기
         const insertClubFeeInfoRow = await clubDao.insertClubFeeInfo(connection, clubIdx, clubInfo.fee, clubInfo.feeType);
 
+        //사진 게시
+        const insertClubPhotoUrlRow = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx);
 
         if (clubInfo.isRegular == 0) {
             //비정기 모임일때 -> 태그 없음, 사진 한장
-
-            if(clubInfo.clubPhotoList.length > 1){
-                resultResponse = response(baseResponse.TOO_MUCH_PHOTOS);
-            }
-            const insertClubPhotoUrlRow = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx);
+            //태그 게시 없이 바로 리턴
 
             await connection.commit();
             connection.release();
@@ -57,12 +55,6 @@ exports.createClub = async function (userIdxFromJWT, clubInfo) {
             return resultResponse;
         }
 
-        if(clubInfo.clubPhotoList.length > 5){
-            resultResponse = response(baseResponse.TOO_MUCH_PHOTOS);
-        }
-
-        //정기모임일때 -> 사진 게시
-        const insertClubPhotoUrlRow = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx);
 
         //태그들 게시
         for (let i = 0; i < clubInfo.tagList.length; i++) {
