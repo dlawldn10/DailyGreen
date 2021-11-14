@@ -20,7 +20,8 @@ module.exports = function(app) {
     // 게시글 수정
     app.patch('/app/posts', jwtMiddleware, upload.none(), post.patchMyPost);
 
-
+    //좋아요 게시
+    app.post('/app/posts/likes', jwtMiddleware, upload.none(), post.postLike);
 
 
 

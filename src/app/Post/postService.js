@@ -86,35 +86,43 @@ exports.updatePost = async function (reqBody) {
     }
 };
 
-//게시물 삭제
-exports.deletePost = async function (reqBody) {
+
+//좋아요 게시
+exports.createPostLike = async function (userIdx, postIdx) {
     const connection = await pool.getConnection(async (conn) => conn);
 
     try {
 
         connection.beginTransaction();
-        const deletePostResult = await postDao.deletePost(connection, reqBody);
-        connection.commit();
+        const LikeStatus = await postDao.selectIfLikeExist(connection, userIdx, postIdx);
 
-
-        //원래 있던 PostTags의 태그들을 DELETE 하고
-        const deleteTagResult = await postDao.updatePostTags(connection, 'DELETED', reqBody.postIdx);
-        // 사진, 댓글, 댓글 좋아요, 게시물 좋아요들 모두 삭제
-        const deletePhotoUrlResult = await postDao.updatePostPhotoUrl(connection, 'DELETED', reqBody.postIdx);
-        const deleteCommentsResult = await postDao.updateComments(connection, 'DELETED', reqBody.postIdx);
-        const deleteCommentLikesResult = await postDao.updateCommentLikes(connection, 'DELETED', reqBody.postIdx);
-        const deletePostLikesResult = await postDao.updatePostLikes(connection, 'DELETED', reqBody.postIdx);
-
-        connection.commit();
-
-
-
-        return response(baseResponse.SUCCESS);
+        if(LikeStatus[0] === undefined) {
+            //좋아요 추가
+            const insertPostLikeResult = await postDao.insertLikeInfo(connection, userIdx, postIdx);
+            connection.commit();
+            return response(baseResponse.INSERT_POSTLIKE_SUCCESS, {
+                isPostLiked: 1
+            });
+        }else if(LikeStatus[0].status === 'ACTIVE' ){
+            //좋아요 취소
+            const updatePostLikeResult = await postDao.updateLikeInfo(connection, userIdx, postIdx, 'INACTIVE');
+            connection.commit();
+            return response(baseResponse.CANCEL_POSTLIKE_SUCCESS, {
+                isPostLiked: 0
+            });
+        }else if(LikeStatus[0].status === 'INACTIVE'){
+            //다시 좋아요 추가
+            const updatePostLikeResult = await postDao.updateLikeInfo(connection, userIdx, postIdx, 'ACTIVE');
+            connection.commit();
+            return response(baseResponse.REINSERT_POSTLIKE_SUCCESS, {
+                isPostLiked: 1
+            });
+        }
 
 
     } catch (err) {
         connection.rollback();
-        logger.error(`App - deletePost Service error\n: ${err.message}`);
+        logger.error(`App - createPostLike Service error\n: ${err.message}`);
         return errResponse(baseResponse.DB_ERROR);
     }finally {
         connection.release();

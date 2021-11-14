@@ -95,3 +95,22 @@ exports.getPostList = async function (req, res){
     return res.send(response(baseResponse.SUCCESS, retrievePostsResult));
 
 }
+
+
+//좋아요 게시
+exports.postLike = async function (req, res) {
+
+
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+    const postIdx = req.body.postIdx;
+
+
+    if (!userIdxFromJWT) return res.send(errResponse(baseResponse.USERIDX_EMPTY));
+    else if(!postIdx) return res.send(errResponse(baseResponse.POSTIDX_EMPTY));
+
+    const createPostLikeResponse = await postService.createPostLike(
+        userIdxFromJWT, postIdx
+    );
+
+    return res.send(createPostLikeResponse);
+};

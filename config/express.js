@@ -30,6 +30,7 @@ module.exports = function () {
     require('../src/app/Club/clubRoute')(app);
     require('../src/app/Workshop/workshopRoute')(app);
     require('../src/app/Post/postRoute')(app);
+    require('../src/app/Comment/commentRoute')(app);
 
     return app;
 };

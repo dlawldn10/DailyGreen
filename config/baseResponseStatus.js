@@ -18,6 +18,10 @@ module.exports = {
     UPDATE_WORKSHOP_SUCCESS : { "isSuccess": true, "code": 1010, "message":"워크샵 수정 성공." },
     CREATE_FEED_SUCCESS : { "isSuccess": true, "code": 1011, "message":"게시물 생성 성공." },
     UPDATE_FEED_SUCCESS : { "isSuccess": true, "code": 1012, "message":"게시물 수정 성공." },
+    INSERT_POSTLIKE_SUCCESS : { "isSuccess": true, "code": 1013, "message":"좋아요가 추가되었습니다." },
+    CANCEL_POSTLIKE_SUCCESS : { "isSuccess": true, "code": 1014, "message":"좋아요가 취소되었습니다." },
+    REINSERT_POSTLIKE_SUCCESS : { "isSuccess": true, "code": 1015, "message":"좋아요가 다시 추가되었습니다." },
+    INSERT_COMMENT_SUCCESS : { "isSuccess": true, "code": 1016, "message":"댓글이 추가되었습니다." },
 
 
     //Request error
@@ -75,7 +79,7 @@ module.exports = {
     SIGNUP_PHONENUM_EMPTY : { "isSuccess": false, "code": 2043, "message":"전화번호을(를) 입력해주세요." },
     SIGNUP_EMAIL_TYPE_ERROR : { "isSuccess": false, "code": 2044, "message":"이메일 형식이 올바르지 않습니다." },
     SIGNUP_PHONENUM_TYPE_ERROR : { "isSuccess": false, "code": 2045, "message":"전화번호 형식이 올바르지 않습니다. '-' 없이 입력해주세요." },
-
+    COMMENT_CONTENT_EMPTY: { "isSuccess": false, "code": 2046, "message":"댓글 내용을 입력해주세요." },
 
 
     // Response error

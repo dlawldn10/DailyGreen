@@ -267,6 +267,55 @@ async function updatePostLikes(connection, status, postIdx) {
     return insertStoryTagRow[0];
 }
 
+//좋아요를 한 적이 있는지 알아보기
+async function selectIfLikeExist(connection, accountIdx, postIdx) {
+    const selectTagQuery = `
+        SELECT status FROM PostLikes WHERE userIdx =? AND postIdx =?;
+    `;
+
+    const selectTagRow = await connection.query(
+        selectTagQuery,
+        [accountIdx, postIdx]
+    );
+
+    return selectTagRow[0];
+
+
+}
+
+
+//좋아요 저장
+async function insertLikeInfo(connection, userIdx, postIdx) {
+    //태그들을 저장한다.
+    const insertLikeQuery = `
+        INSERT INTO PostLikes(userIdx, postIdx) VALUES (?, ?);
+    `;
+
+
+    const insertLikeRow = await connection.query(
+        insertLikeQuery,
+        [userIdx, postIdx]
+    );
+
+    return insertLikeRow[0];
+}
+
+//좋아요 업데이트
+async function updateLikeInfo(connection, userIdx, postIdx, status) {
+    const updateLikeQuery = `
+        UPDATE PostLikes SET status = ? WHERE userIdx =? AND postIdx =?;
+    `;
+
+
+    const updateLikeRow = await connection.query(
+        updateLikeQuery,
+        [status, userIdx, postIdx]
+    );
+
+    return updateLikeRow[0];
+}
+
+
 
 module.exports = {
 
@@ -286,5 +335,8 @@ module.exports = {
     updatePostPhotoUrl,
     updateComments,
     updatePostLikes,
+    selectIfLikeExist,
+    insertLikeInfo,
+    updateLikeInfo
 
 };
