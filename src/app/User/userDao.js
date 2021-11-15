@@ -98,15 +98,70 @@ async function selectSimpleUserProfile(connection, userIdx) {
 
 
 // 가장 가까운 날 주최되는 이벤트(모임, 워크샵) 가져오기
-async function selectCloseEvents(connection, userIdx) {
-  const selectUserAccountQuery = `
-        SELECT nickname, profilePhotoUrl
-        FROM Users 
-        WHERE userIdx = ?;
+async function selectCloseEvents(connection) {
+  const selectUserAccountQuery = `(
+    SELECT C.clubIdx as idx,
+           C.clubName as name,
+           C.locationDetail,
+           CONCAT(date_format(C.when, '%Y.%m.%d '),
+                  case WEEKDAY(C.\`when\`)
+                      when '0' then '월요일'
+                      when '1' then '화요일'
+                      when '2' then '수요일'
+                      when '3' then '목요일'
+                      when '4' then '금요일'
+                      when '5' then '토요일'
+                      when '6' then '일요일'
+                      end, ' ',
+                  case date_format(C.when, '%p')
+                      when 'PM' then '오후'
+                      when 'AM' then '오전'
+                      end, ' ',
+                  date_format(C.when, '%l시'),
+                  if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                     date_format(C.\`when\`, ' %i분')))     as \`when\`,
+           DATEDIFF(date(C.\`when\`), now()) as Dday,
+           CPU.url as photo,
+           if(C.isRegular = 0 AND TN.table_name = 'Clubs', '모임', '정기모임') as type
+    FROM Clubs C
+             LEFT JOIN (SELECT clubIdx, url FROM ClubPhotoUrls GROUP BY clubIdx) CPU on C.clubIdx = CPU.clubIdx
+            INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Clubs%') TN
+    WHERE C.status = 'ACTIVE' AND DATEDIFF(date(C.\`when\`), now()) > 0
+)
+UNION ALL
+(
+    SELECT C.workshopIdx as idx,
+           C.workshopName as name,
+           C.locationDetail,
+           CONCAT(date_format(C.when, '%Y.%m.%d '),
+                  case WEEKDAY(C.\`when\`)
+                      when '0' then '월요일'
+                      when '1' then '화요일'
+                      when '2' then '수요일'
+                      when '3' then '목요일'
+                      when '4' then '금요일'
+                      when '5' then '토요일'
+                      when '6' then '일요일'
+                      end, ' ',
+                  case date_format(C.when, '%p')
+                      when 'PM' then '오후'
+                      when 'AM' then '오전'
+                      end, ' ',
+                  date_format(C.when, '%l시'),
+                  if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                     date_format(C.\`when\`, ' %i분')))     as \`when\`,
+           DATEDIFF(date(C.\`when\`), now()) as Dday,
+           CPU.url as photo,
+           if(TN.table_name = 'Workshops', '워크샵', '워크샵') as type
+    FROM Workshops C
+             LEFT JOIN (SELECT workshopIdx, url FROM WorkshopPhotoUrls GROUP BY workshopIdx) CPU on C.workshopIdx = CPU.workshopIdx
+             INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Workshops%') TN
+    WHERE C.status = 'ACTIVE' AND DATEDIFF(date(C.\`when\`), now()) > 0
+)
+ORDER BY Dday ASC LIMIT 3 OFFSET 0;
         `;
   const selectUserAccountRow = await connection.query(
-      selectUserAccountQuery,
-      userIdx
+      selectUserAccountQuery
   );
   return selectUserAccountRow[0];
 

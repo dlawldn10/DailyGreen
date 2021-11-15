@@ -21,4 +21,7 @@ module.exports = function(app) {
     //워크샵 수정
     app.patch('/app/workshops', jwtMiddleware, upload.none(), workshop.patchWorkshop);
 
+    //워크샵 참가/취소
+    app.post('/app/workshops/follow', jwtMiddleware, upload.none(), workshop.postWorkshopFollowing);
+
 }

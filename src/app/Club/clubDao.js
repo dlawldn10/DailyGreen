@@ -93,7 +93,8 @@ async function insertClubFeeInfo(connection, clubIdx, fee, feeType) {
 async function selectClubList(connection, communityIdx, limit, page) {
 
     const selectClubsQuery = `
-        SELECT C.clubIdx,
+        SELECT C.isRegular,
+               C.clubIdx,
                C.userIdx,
                U.nickname,
                U.profilePhotoUrl,
@@ -372,6 +373,57 @@ async function updateOneHashTag(connection, newStatus, tagName){
     return updateHashTagStatusRow[0];
 }
 
+
+
+//참가를 한 적이 있는지 알아보기
+async function selectIfClubFollowExist(connection, userIdx, clubIdx) {
+    const selectTagQuery = `
+        SELECT status FROM ClubFollowings WHERE fromUserIdx =? AND toClubIdx =?;
+    `;
+
+    const selectTagRow = await connection.query(
+        selectTagQuery,
+        [userIdx, clubIdx]
+    );
+
+    return selectTagRow[0];
+
+
+}
+
+
+//참가 저장
+async function insertClubFollowInfo(connection, userIdx, clubIdx) {
+
+    const insertLikeQuery = `
+        INSERT INTO ClubFollowings(fromUserIdx, toClubIdx) VALUES (?, ?);
+    `;
+
+
+    const insertLikeRow = await connection.query(
+        insertLikeQuery,
+        [userIdx, clubIdx]
+    );
+
+    return insertLikeRow[0];
+}
+
+//참가 업데이트
+async function updateClubFollowInfo(connection, userIdx, clubIdx, status) {
+    const updateLikeQuery = `
+        UPDATE ClubFollowings SET status = ? WHERE fromUserIdx =? AND toClubIdx =?;
+    `;
+
+
+    const updateLikeRow = await connection.query(
+        updateLikeQuery,
+        [status, userIdx, clubIdx]
+    );
+
+    return updateLikeRow[0];
+}
+
+
 module.exports = {
     insertClubInfo,
     insertClubPhotoUrl,
@@ -392,6 +444,9 @@ module.exports = {
     selectClubTagBytagIdx,
     updateOneClubTag,
     selectHashTagBytagName,
-    updateOneHashTag
+    updateOneHashTag,
+    selectIfClubFollowExist,
+    insertClubFollowInfo,
+    updateClubFollowInfo
 
 };

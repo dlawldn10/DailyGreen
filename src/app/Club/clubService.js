@@ -224,3 +224,42 @@ async function uploadToFirebaseStorage(connection, resultResponse, clubInfo, use
 }
 
 
+//모임 참가/취소
+exports.createClubFollowing = async function (userIdx, clubIdx) {
+
+    const connection = await pool.getConnection(async (conn) => conn);
+
+    try {
+        await connection.beginTransaction();
+
+        const LikeStatus = await clubDao.selectIfClubFollowExist(connection, userIdx, clubIdx);
+
+        if(LikeStatus[0] === undefined) {
+            //참가 추가
+            const insertPostLikeResult = await clubDao.insertClubFollowInfo(connection, userIdx, clubIdx);
+            connection.commit();
+            return response(baseResponse.INSERT_CLUBFOLLOWING_SUCCESS);
+        }else if(LikeStatus[0].status === 'ACTIVE' ){
+            //참가 취소
+            const updatePostLikeResult = await clubDao.updateClubFollowInfo(connection, userIdx, clubIdx, 'DELETED');
+            connection.commit();
+            return response(baseResponse.CANCEL_CLUBFOLLOWING_SUCCESS);
+        }else if(LikeStatus[0].status === 'DELETED'){
+            //다시 참가 추가
+            const updatePostLikeResult = await clubDao.updateClubFollowInfo(connection, userIdx, clubIdx, 'ACTIVE');
+            connection.commit();
+            return response(baseResponse.REINSERT_CLUBFOLLOWING_SUCCESS);
+        }
+
+    }catch (err) {
+
+        connection.rollback();
+        logger.error(`App - createClubFollowing Service error\n: ${err.message} \n${JSON.stringify(err)}`);
+        return errResponse(baseResponse.DB_ERROR);
+
+    }finally {
+
+        connection.release();
+
+    }
+}

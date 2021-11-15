@@ -5,7 +5,7 @@ module.exports = function(app){
     const user = require('./userController');
     const multer = require("multer");
     const upload = multer({ storage: multer.memoryStorage() });
-
+    const jwtMiddleware = require('../../../config/jwtMiddleware');
 
 
     //회원 가입 전 닉네임 중복 검사
@@ -33,7 +33,7 @@ module.exports = function(app){
     app.post('/app/login', upload.none(), user.originLogin);
 
     // //홈화면 - 이벤트 배너
-    // app.get('/app/users/events', user.getEvents);
+    app.get('/app/users/events', jwtMiddleware, upload.none(), user.getEvents);
 
 
 

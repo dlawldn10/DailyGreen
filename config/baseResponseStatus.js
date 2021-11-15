@@ -22,6 +22,9 @@ module.exports = {
     CANCEL_POSTLIKE_SUCCESS : { "isSuccess": true, "code": 1014, "message":"좋아요가 취소되었습니다." },
     REINSERT_POSTLIKE_SUCCESS : { "isSuccess": true, "code": 1015, "message":"좋아요가 다시 추가되었습니다." },
     INSERT_COMMENT_SUCCESS : { "isSuccess": true, "code": 1016, "message":"댓글이 추가되었습니다." },
+    INSERT_CLUBFOLLOWING_SUCCESS : { "isSuccess": true, "code": 1017, "message":"참가 완료되었습니다." },
+    CANCEL_CLUBFOLLOWING_SUCCESS : { "isSuccess": true, "code": 1018, "message":"참가가 취소되었습니다." },
+    REINSERT_CLUBFOLLOWING_SUCCESS : { "isSuccess": true, "code": 1019, "message":"참가가 다시 추가되었습니다." },
 
 
     //Request error

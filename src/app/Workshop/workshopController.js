@@ -117,7 +117,7 @@ exports.getWorkshop = async function (req, res){
 }
 
 
-//모임 수정
+//워크샵 수정
 exports.patchWorkshop = async function (req, res){
 
     const userIdxFromJWT = req.verifiedToken.userIdx;
@@ -167,5 +167,21 @@ exports.patchWorkshop = async function (req, res){
     const updateWorkshopResponse = await workshopService.updateWorkshop(userIdxFromJWT, workshopInfo);
     return res.send(updateWorkshopResponse);
 
+
+}
+
+//워크샵 참가 취소
+exports.postWorkshopFollowing = async function (req, res){
+
+    const workshopIdx = req.body.workshopIdx;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!workshopIdx)
+        return res.send(errResponse(baseResponse.WORKSHOPIDX_EMPTY));
+
+    const createWorkshopFollowingResult = await workshopService.createWorkshopFollowing(userIdxFromJWT, workshopIdx);
+    return res.send(createWorkshopFollowingResult);
 
 }

@@ -191,3 +191,19 @@ exports.patchClub = async function (req, res){
 
 }
 
+
+//모임 참가 취소
+exports.postClubFollowing = async function (req, res){
+
+    const clubIdx = req.body.clubIdx;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!clubIdx)
+        return res.send(errResponse(baseResponse.CLUBIDX_EMPTY));
+
+    const retrieveClubResult = await clubService.createClubFollowing(userIdxFromJWT, clubIdx);
+    return res.send(retrieveClubResult);
+
+}

@@ -242,10 +242,10 @@ exports.getEvents = async function (req, res) {
 
     // 빈 값 체크
     if (!userIdxFromJWT)
-        return res.send(response(baseResponse.TOKEN_VERIFICATION_FAILURE));
+        return res.send(response(baseResponse.TOKEN_EMPTY));
 
     const retrieveEventsResponse = await userProvider.retrieveEvents(userIdxFromJWT);
-    return res.send(retrieveEventsResponse);
+    return res.send(response(baseResponse.SUCCESS, retrieveEventsResponse));
 
 
 };

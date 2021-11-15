@@ -20,4 +20,7 @@ module.exports = function(app) {
     //모임 수정
     app.patch('/app/clubs', jwtMiddleware, upload.none(), club.patchClub);
 
+    //모임 참가/취소
+    app.post('/app/clubs/follow', jwtMiddleware, upload.none(), club.postClubFollowing);
+
 }

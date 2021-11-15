@@ -217,3 +217,42 @@ async function uploadToFirebaseStorage(connection, resultResponse, workshopInfo,
 }
 
 
+//워크샵 참가/취소
+exports.createWorkshopFollowing = async function (userIdx, workshopIdx) {
+
+    const connection = await pool.getConnection(async (conn) => conn);
+
+    try {
+        await connection.beginTransaction();
+
+        const LikeStatus = await workshopDao.selectIfWorkshopFollowExist(connection, userIdx, workshopIdx);
+
+        if(LikeStatus[0] === undefined) {
+            //참가 추가
+            const insertPostLikeResult = await workshopDao.insertWorkshopFollowInfo(connection, userIdx, workshopIdx);
+            connection.commit();
+            return response(baseResponse.INSERT_CLUBFOLLOWING_SUCCESS);
+        }else if(LikeStatus[0].status === 'ACTIVE' ){
+            //참가 취소
+            const updatePostLikeResult = await workshopDao.updateWorkshopFollowInfo(connection, userIdx, workshopIdx, 'DELETED');
+            connection.commit();
+            return response(baseResponse.CANCEL_CLUBFOLLOWING_SUCCESS);
+        }else if(LikeStatus[0].status === 'DELETED'){
+            //다시 참가 추가
+            const updatePostLikeResult = await workshopDao.updateWorkshopFollowInfo(connection, userIdx, workshopIdx, 'ACTIVE');
+            connection.commit();
+            return response(baseResponse.REINSERT_CLUBFOLLOWING_SUCCESS);
+        }
+
+    }catch (err) {
+
+        connection.rollback();
+        logger.error(`App - createWorkshopFollowing Service error\n: ${err.message} \n${JSON.stringify(err)}`);
+        return errResponse(baseResponse.DB_ERROR);
+
+    }finally {
+
+        connection.release();
+
+    }
+}

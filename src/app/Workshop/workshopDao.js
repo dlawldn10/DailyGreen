@@ -345,6 +345,56 @@ async function updateOneWorkshopTag(connection, newStatus, workshopIdx, tagIdx){
     return updateClubFeeInfoRow[0];
 }
 
+
+//참가를 한 적이 있는지 알아보기
+async function selectIfWorkshopFollowExist(connection, userIdx, workshopIdx) {
+    const selectTagQuery = `
+        SELECT status FROM WorkshopFollowings WHERE fromUserIdx =? AND toWorkshopIdx =?;
+    `;
+
+    const selectTagRow = await connection.query(
+        selectTagQuery,
+        [userIdx, workshopIdx]
+    );
+
+    return selectTagRow[0];
+
+
+}
+
+
+//참가 저장
+async function insertWorkshopFollowInfo(connection, userIdx, workshopIdx) {
+
+    const insertLikeQuery = `
+        INSERT INTO WorkshopFollowings(fromUserIdx, toWorkshopIdx) VALUES (?, ?);
+    `;
+
+
+    const insertLikeRow = await connection.query(
+        insertLikeQuery,
+        [userIdx, workshopIdx]
+    );
+
+    return insertLikeRow[0];
+}
+
+//참가 업데이트
+async function updateWorkshopFollowInfo(connection, userIdx, workshopIdx, status) {
+    const updateLikeQuery = `
+        UPDATE WorkshopFollowings SET status = ? WHERE fromUserIdx =? AND toWorkshopIdx =?;
+    `;
+
+
+    const updateLikeRow = await connection.query(
+        updateLikeQuery,
+        [status, userIdx, workshopIdx]
+    );
+
+    return updateLikeRow[0];
+}
+
+
 module.exports = {
     insertWorkshopInfo,
     insertWorkshopPhotoUrl,
@@ -363,7 +413,11 @@ module.exports = {
     updateWorkshopFeeInfo,
     updateWorkshopTags,
     selectWorkshopTagBytagIdx,
-    updateOneWorkshopTag
+    updateOneWorkshopTag,
+    selectIfWorkshopFollowExist,
+    insertWorkshopFollowInfo,
+    updateWorkshopFollowInfo
+
 
 
 };
