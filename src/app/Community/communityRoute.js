@@ -1,15 +1,18 @@
 const jwtMiddleware = require("../../../config/jwtMiddleware");
 const community = require("./communityController");
+const multer = require("multer");
 
 module.exports = function(app) {
     const community = require('./communityController');
     const jwtMiddleware = require('../../../config/jwtMiddleware');
+    const multer = require("multer");
+    const upload = multer({ storage: multer.memoryStorage() });
 
     //커뮤니티 구독 추가
-    app.post('/app/communities', jwtMiddleware, community.postCommunityFollow);
+    app.post('/app/communities', jwtMiddleware, upload.none(), community.postCommunityFollow);
 
     //커뮤니티 구독 취소
-    app.patch('/app/communities', jwtMiddleware, community.patchCommunityFollow);
+    app.patch('/app/communities', jwtMiddleware, upload.none(), community.patchCommunityFollow);
 
 
 

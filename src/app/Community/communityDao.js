@@ -4,7 +4,7 @@ async  function insertCommunityFollow(connection, userIdxFromJWT, communityIdx) 
     const insertCommunityFollowQuery = `
         INSERT INTO CommunityFollowings(fromUserIdx, toCommunityIdx)
         VALUES (?, ?);
-        `;
+    `;
     const insertCommunityFollowRow = await connection.query(
         insertCommunityFollowQuery,
         [userIdxFromJWT, communityIdx]
@@ -15,17 +15,17 @@ async  function insertCommunityFollow(connection, userIdxFromJWT, communityIdx) 
 
 async function selectCommunityByCommunityIdx(connection, communityIdx){
     const selectCommunityQuery = `
-    SELECT communityName FROM Communities WHERE communityIdx = ?;
-  `;
+        SELECT communityName FROM Communities WHERE communityIdx = ?;
+    `;
     const [selectCommunityRow] = await connection.query(selectCommunityQuery, communityIdx);
     return selectCommunityRow[0];
 }
 
 async function selectIfCommunityFollowing(connection, userIdxFromJWT, communityIdx){
     const selectCommunityFollowQuery = `
-    SELECT status FROM CommunityFollowings WHERE toCommunityIdx = ?;
+    SELECT status FROM CommunityFollowings WHERE toCommunityIdx = ? AND fromUserIdx = ?;
   `;
-    const [selectCommunityRow] = await connection.query(selectCommunityFollowQuery, communityIdx);
+    const [selectCommunityRow] = await connection.query(selectCommunityFollowQuery, [communityIdx, userIdxFromJWT]);
     return selectCommunityRow[0];
 }
 
@@ -35,7 +35,7 @@ async function updateCommunityFollow(connection, userIdxFromJWT, communityIdx, n
   `;
     const [selectCommunityRow] = await connection.query(updateCommunityFollowQuery,
         [newStatus, userIdxFromJWT, communityIdx]
-        );
+    );
 
     return selectCommunityRow[0];
 }
@@ -44,12 +44,12 @@ async function updateCommunityFollow(connection, userIdxFromJWT, communityIdx, n
 // 특정 유저가 참여중인 커뮤니티 리스트
 async function selectMyCommunities(connection, userIdx) {
     const selectUserAccountQuery = `
-    SELECT CF.toCommunityIdx as communityIdx,
-           C.communityName FROM CommunityFollowings CF
-    LEFT JOIN (SELECT communityName, communityIdx FROM Communities) C on CF.toCommunityIdx = C.communityIdx
-    WHERE CF.fromUserIdx = ? AND CF.status = 'ACTIVE'
-    GROUP BY CF.toCommunityIdx;
-        `;
+        SELECT CF.toCommunityIdx as communityIdx,
+               C.communityName FROM CommunityFollowings CF
+                                        LEFT JOIN (SELECT communityName, communityIdx FROM Communities) C on CF.toCommunityIdx = C.communityIdx
+        WHERE CF.fromUserIdx = ? AND CF.status = 'ACTIVE'
+        GROUP BY CF.toCommunityIdx;
+    `;
     const selectUserAccountRow = await connection.query(
         selectUserAccountQuery,
         userIdx
@@ -63,10 +63,10 @@ async function selectMyCommunities(connection, userIdx) {
 async function selectCommunityFollowingUsersProfilePhoto(connection, communityIdx) {
     const selectProfilePhotoQuery = `
         SELECT U.profilePhotoUrl FROM Users U
-        LEFT JOIN (SELECT toCommunityIdx, fromUserIdx, updatedAt, status FROM CommunityFollowings) CF on CF.fromUserIdx = U.userIdx
+                                          LEFT JOIN (SELECT toCommunityIdx, fromUserIdx, updatedAt, status FROM CommunityFollowings) CF on CF.fromUserIdx = U.userIdx
         WHERE CF.toCommunityIdx = ? AND CF.status = 'ACTIVE' AND U.status = 'ACTIVE'
         ORDER BY CF.updatedAt DESC LIMIT 3;
-        `;
+    `;
     const selectProfilePhotoRow = await connection.query(
         selectProfilePhotoQuery,
         communityIdx
@@ -81,7 +81,7 @@ async function selectCommunityFollowingUsersCount(connection, communityIdx) {
     const selectProfilePhotoQuery = `
         SELECT COUNT(toCommunityIdx) as totalFollowers FROM CommunityFollowings CF
         WHERE CF.toCommunityIdx = ? AND CF.status = 'ACTIVE';
-        `;
+    `;
     const selectProfilePhotoRow = await connection.query(
         selectProfilePhotoQuery,
         communityIdx

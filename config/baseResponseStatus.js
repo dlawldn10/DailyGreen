@@ -25,6 +25,9 @@ module.exports = {
     INSERT_CLUBFOLLOWING_SUCCESS : { "isSuccess": true, "code": 1017, "message":"참가 완료되었습니다." },
     CANCEL_CLUBFOLLOWING_SUCCESS : { "isSuccess": true, "code": 1018, "message":"참가가 취소되었습니다." },
     REINSERT_CLUBFOLLOWING_SUCCESS : { "isSuccess": true, "code": 1019, "message":"참가가 다시 추가되었습니다." },
+    INSERT_SHOPLIKE_SUCCESS : { "isSuccess": true, "code": 1020, "message":"관심상점이 추가되었습니다." },
+    CANCEL_SHOPLIKE_SUCCESS : { "isSuccess": true, "code": 1021, "message":"관심상점에서 제외되었습니다." },
+    REINSERT_SHOPLIKE_SUCCESS : { "isSuccess": true, "code": 1022, "message":"관심상점에 다시 추가되었습니다." },
 
 
     //Request error
@@ -83,6 +86,7 @@ module.exports = {
     SIGNUP_EMAIL_TYPE_ERROR : { "isSuccess": false, "code": 2044, "message":"이메일 형식이 올바르지 않습니다." },
     SIGNUP_PHONENUM_TYPE_ERROR : { "isSuccess": false, "code": 2045, "message":"전화번호 형식이 올바르지 않습니다. '-' 없이 입력해주세요." },
     COMMENT_CONTENT_EMPTY: { "isSuccess": false, "code": 2046, "message":"댓글 내용을 입력해주세요." },
+    SHOPIDX_EMPTY: { "isSuccess": false, "code": 2047, "message":"shopIdx을(를) 입력해주세요." },
 
 
     // Response error
