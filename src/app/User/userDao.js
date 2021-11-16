@@ -199,6 +199,96 @@ async function selectUserPassword(connection, selectUserPasswordParams) {
 };
 
 
+// 마이페이지 조회
+async function selectMyPage(connection, userIdx) {
+  const selectMyPageQuery = `
+    SELECT userIdx, nickname, profilePhotoUrl FROM Users WHERE userIdx = ?;
+    `;
+
+  const selectMyPageRow = await connection.query(selectMyPageQuery, userIdx);
+
+  return selectMyPageRow[0];
+};
+
+async function selectMyPageCnts(connection, userIdx) {
+  const selectMyPageQuery = `
+    SELECT
+        (SELECT COUNT(*) FROM ClubFollowings WHERE fromUserIdx = ${userIdx}) +
+        (SELECT COUNT(*) FROM WorkshopFollowings WHERE fromUserIdx = ${userIdx} ) as participationCnt,
+        (SELECT COUNT(*) FROM Clubs WHERE userIdx = ${userIdx}) +
+        (SELECT COUNT(*) FROM Workshops WHERE userIdx = ${userIdx}) as createdCWCnt,
+        (SELECT COUNT(*) FROM Posts WHERE userIdx = ${userIdx}) as createdPostCnt;`;
+
+  const selectMyPageRow = await connection.query(selectMyPageQuery);
+
+  return selectMyPageRow[0];
+};
+
+
+// 마이페이지 -참여중인 이벤트 조회
+async function selectParticipatingEvents(connection, userIdx) {
+  const selectMyPageQuery = `
+    (SELECT CF.toClubIdx as idx,
+        if(C.isRegular = 0 AND TN.table_name = 'Clubs', '모임', '정기모임') as type,
+        C.clubName as name,
+        CONCAT(date_format(C.when, '%Y.%m.%d '),
+               case WEEKDAY(C.\`when\`)
+                   when '0' then '월요일'
+                   when '1' then '화요일'
+                   when '2' then '수요일'
+                   when '3' then '목요일'
+                   when '4' then '금요일'
+                   when '5' then '토요일'
+                   when '6' then '일요일'
+                   end, ' ',
+               case date_format(C.when, '%p')
+                   when 'PM' then '오후'
+                   when 'AM' then '오전'
+                   end, ' ',
+               date_format(C.when, '%l시'),
+               if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                  date_format(C.\`when\`, ' %i분'))) as \`when\`,
+        C.locationDetail,
+        DATEDIFF(date(C.\`when\`), now()) as Dday FROM ClubFollowings CF
+LEFT JOIN (SELECT clubIdx, clubName, \`when\`, locationDetail, isRegular, status FROM Clubs) C ON C.clubIdx = CF.toClubIdx
+INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Clubs%') TN
+ WHERE fromUserIdx = ? AND C.status = 'ACTIVE')
+UNION ALL
+(SELECT CF.toWorkshopIdx as idx,
+       if(TN.table_name = 'Workshops', '워크샵', '워크샵') as type,
+       C.workshopName as name,
+       CONCAT(date_format(C.when, '%Y.%m.%d '),
+              case WEEKDAY(C.\`when\`)
+                  when '0' then '월요일'
+                  when '1' then '화요일'
+                  when '2' then '수요일'
+                  when '3' then '목요일'
+                  when '4' then '금요일'
+                  when '5' then '토요일'
+                  when '6' then '일요일'
+                  end, ' ',
+              case date_format(C.when, '%p')
+                  when 'PM' then '오후'
+                  when 'AM' then '오전'
+                  end, ' ',
+              date_format(C.when, '%l시'),
+              if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                 date_format(C.\`when\`, ' %i분'))) as \`when\`,
+       C.locationDetail,
+       DATEDIFF(date(C.\`when\`), now()) as Dday FROM WorkshopFollowings CF
+LEFT JOIN (SELECT workshopIdx, workshopName, \`when\`, locationDetail, status FROM Workshops) C ON C.workshopIdx = CF.toWorkshopIdx
+INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Workshops%') TN
+WHERE CF.fromUserIdx = ? AND C.status = 'ACTIVE' )
+ORDER BY Dday ASC;`;
+  const selectMyPageRow = await connection.query(
+      selectMyPageQuery,
+      [userIdx, userIdx]
+  );
+
+  return selectMyPageRow;
+};
+
+
 
   module.exports = {
   insertUserInfo,
@@ -209,6 +299,9 @@ async function selectUserPassword(connection, selectUserPasswordParams) {
   selectSimpleUserProfile,
   selectCloseEvents,
   insertProfilePhotoUrl,
-  selectUserPassword
+  selectUserPassword,
+  selectMyPage,
+  selectParticipatingEvents,
+  selectMyPageCnts
 
 };

@@ -1,4 +1,5 @@
 const user = require("./userController");
+const jwtMiddleware = require("../../../config/jwtMiddleware");
 
 
 module.exports = function(app){
@@ -32,8 +33,13 @@ module.exports = function(app){
     //자체 로그인
     app.post('/app/login', upload.none(), user.originLogin);
 
-    // //홈화면 - 이벤트 배너
+    //홈화면 - 이벤트 배너
     app.get('/app/users/events', jwtMiddleware, upload.none(), user.getEvents);
+
+
+
+    //마이페이지
+    app.get('/app/users', jwtMiddleware, upload.none(), user.getMyPage);
 
 
 

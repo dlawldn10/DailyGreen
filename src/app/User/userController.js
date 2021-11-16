@@ -332,6 +332,22 @@ exports.originLogin = async function (req, res) {
 
 
 
+//마이페이지
+exports.getMyPage = async function (req, res) {
+
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    // 빈 값 체크
+    if (!userIdxFromJWT)
+        return res.send(response(baseResponse.TOKEN_EMPTY));
+
+    const retrieveEventsResponse = await userProvider.retrieveMyPage(userIdxFromJWT);
+    return res.send(response(baseResponse.SUCCESS, retrieveEventsResponse));
+
+
+};
+
+
 /** JWT 토큰 검증 API
  * [GET] /app/auto-login
  */

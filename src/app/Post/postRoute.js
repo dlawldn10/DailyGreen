@@ -23,6 +23,9 @@ module.exports = function(app) {
     //좋아요 게시
     app.post('/app/posts/likes', jwtMiddleware, upload.none(), post.postLike);
 
+    // 게시글 삭제
+    app.patch('/app/posts/:postIdx', jwtMiddleware, upload.none(), post.deleteMyPost);
+
 
 
 

@@ -28,6 +28,7 @@ module.exports = {
     INSERT_SHOPLIKE_SUCCESS : { "isSuccess": true, "code": 1020, "message":"관심상점이 추가되었습니다." },
     CANCEL_SHOPLIKE_SUCCESS : { "isSuccess": true, "code": 1021, "message":"관심상점에서 제외되었습니다." },
     REINSERT_SHOPLIKE_SUCCESS : { "isSuccess": true, "code": 1022, "message":"관심상점에 다시 추가되었습니다." },
+    DELETE_FEED_SUCCESS : { "isSuccess": true, "code": 1023, "message":"게시물 삭제 성공." },
 
 
     //Request error

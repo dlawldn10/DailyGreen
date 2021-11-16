@@ -114,3 +114,22 @@ exports.postLike = async function (req, res) {
 
     return res.send(createPostLikeResponse);
 };
+
+
+//게시물 삭제하기
+exports.deleteMyPost = async function (req, res) {
+
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+    const postIdx = req.params.postIdx;
+
+    // 빈 값 체크
+    if (!userIdxFromJWT)
+        return res.send(response(baseResponse.TOKEN_EMPTY));
+    else if(!postIdx)
+        return res.send(response(baseResponse.POSTIDX_EMPTY));
+
+
+    const postResponse = await postService.deletePost(userIdxFromJWT, postIdx);
+    return res.send(postResponse);
+
+};

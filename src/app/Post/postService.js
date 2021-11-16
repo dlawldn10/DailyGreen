@@ -130,6 +130,30 @@ exports.createPostLike = async function (userIdx, postIdx) {
 };
 
 
+//게시물 삭제
+exports.deletePost = async function (userIdx, postIdx) {
+    const connection = await pool.getConnection(async (conn) => conn);
+
+    try {
+
+        connection.beginTransaction();
+        const updatePostResult = await postDao.deletePost(connection, postIdx);
+        const updatePostPhotoUrlsResult = await postDao.deletePostPhotoUrl(connection, postIdx);
+
+        connection.commit();
+        return response(baseResponse.DELETE_FEED_SUCCESS);
+
+
+    } catch (err) {
+        connection.rollback();
+        logger.error(`App - deletePost Service error\n: ${err.message}`);
+        return errResponse(baseResponse.DB_ERROR);
+    }finally {
+        connection.release();
+    }
+};
+
+
 async function uploadToFirebaseStorage(connection, resultResponse, reqBody, userIdxFromJWT, postIdx) {
     //사진 업로드
     const postPhotoUrlList = [];

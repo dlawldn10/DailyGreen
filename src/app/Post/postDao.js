@@ -201,15 +201,15 @@ async function updatePost(connection, reqBody) {
 }
 
 //게시물 삭제
-async function deletePost(connection, reqBody) {
+async function deletePost(connection, postIdx) {
 
     const insertStoryTagQuery = `
-        UPDATE Posts SET status = ? WHERE postIdx = ?;
+        UPDATE Posts SET status = 'DELETED' WHERE postIdx = ?;
     `;
 
     const insertStoryTagRow = await connection.query(
         insertStoryTagQuery,
-        [reqBody.action, reqBody.postIdx]
+        postIdx
     );
 
 
@@ -219,53 +219,22 @@ async function deletePost(connection, reqBody) {
 
 
 //사진 url 삭제
-async function updatePostPhotoUrl(connection, status, postIdx) {
+async function deletePostPhotoUrl(connection, postIdx) {
 
     const insertStoryTagQuery = `
-        UPDATE PostPhotoUrls SET status = ? WHERE postIdx = ?;
+        UPDATE PostPhotoUrls SET status = 'DELETED' WHERE postIdx = ?;
     `;
 
 
     const insertStoryTagRow = await connection.query(
         insertStoryTagQuery,
-        [status, postIdx]
-    );
-
-    return insertStoryTagRow[0];
-}
-
-//댓글 삭제
-async function updateComments(connection, status, postIdx) {
-
-    const insertStoryTagQuery = `
-        UPDATE Comments SET status = ? WHERE postIdx = ?;
-    `;
-
-
-    const insertStoryTagRow = await connection.query(
-        insertStoryTagQuery,
-        [status, postIdx]
+        postIdx
     );
 
     return insertStoryTagRow[0];
 }
 
 
-//게시물 좋아요 삭제
-async function updatePostLikes(connection, status, postIdx) {
-
-    const insertStoryTagQuery = `
-        UPDATE PostLikes SET status = ? WHERE postIdx = ?;
-    `;
-
-
-    const insertStoryTagRow = await connection.query(
-        insertStoryTagQuery,
-        [status, postIdx]
-    );
-
-    return insertStoryTagRow[0];
-}
 
 //좋아요를 한 적이 있는지 알아보기
 async function selectIfLikeExist(connection, accountIdx, postIdx) {
@@ -317,6 +286,7 @@ async function updateLikeInfo(connection, userIdx, postIdx, status) {
 
 
 
+
 module.exports = {
 
     selectPostList,
@@ -332,11 +302,10 @@ module.exports = {
     selectIfFollowing,
     updatePost,
     deletePost,
-    updatePostPhotoUrl,
-    updateComments,
-    updatePostLikes,
+    deletePostPhotoUrl,
     selectIfLikeExist,
     insertLikeInfo,
-    updateLikeInfo
+    updateLikeInfo,
+    deletePost
 
 };
