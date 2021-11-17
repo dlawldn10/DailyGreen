@@ -71,7 +71,7 @@ exports.getPostList = async function (req, res){
     const communityIdx = req.params.communityIdx;
     const userIdxFromJWT = req.verifiedToken.userIdx;
 
-    const limit = 5;
+    const limit = 15;
 
     if (!userIdxFromJWT)
         return res.send(errResponse(baseResponse.TOKEN_EMPTY));
@@ -133,3 +133,39 @@ exports.deleteMyPost = async function (req, res) {
     return res.send(postResponse);
 
 };
+
+
+//특정 인물이 쓴 게시물 커뮤니티별로 조회
+exports.getCreatedPostList = async function (req, res){
+
+    let page = req.query.page;
+    const userIdx = req.params.userIdx;
+    const communityIdx = req.params.communityIdx;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    const limit = 15;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!userIdx)
+        return res.send(errResponse(baseResponse.USERIDX_EMPTY));
+    else if (!communityIdx)
+        return res.send(errResponse(baseResponse.COMMUNITYIDX_EMPTY));
+
+    if(limit-page < 0){
+
+        page = 0;
+
+    }else if(page == 0 || !page){
+
+        return res.send(errResponse(baseResponse.PAGECOUNT_WRONG));
+    }else{
+
+        page = (page-1)*limit
+
+    }
+
+    const retrievePostsResult = await postProvider.retrieveCreatedPostList(userIdxFromJWT, userIdx, page, limit, communityIdx);
+    return res.send(response(baseResponse.SUCCESS, retrievePostsResult));
+
+}

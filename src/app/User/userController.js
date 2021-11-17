@@ -336,12 +336,15 @@ exports.originLogin = async function (req, res) {
 exports.getMyPage = async function (req, res) {
 
     const userIdxFromJWT = req.verifiedToken.userIdx;
+    const targetUserIdx = req.params.userIdx;
 
     // 빈 값 체크
     if (!userIdxFromJWT)
         return res.send(response(baseResponse.TOKEN_EMPTY));
+    else if (!targetUserIdx)
+        return res.send(response(baseResponse.USERIDX_EMPTY));
 
-    const retrieveEventsResponse = await userProvider.retrieveMyPage(userIdxFromJWT);
+    const retrieveEventsResponse = await userProvider.retrieveMyPage(targetUserIdx);
     return res.send(response(baseResponse.SUCCESS, retrieveEventsResponse));
 
 

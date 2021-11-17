@@ -45,7 +45,7 @@ exports.createWorkshop = async function (userIdxFromJWT, workshopInfo) {
         //워크샵 회비 정보 넣기
         const insertWorkshopFeeInfoRow = await workshopDao.insertWorkshopFeeInfo(connection, workshopIdx, workshopInfo.fee, workshopInfo.feeType);
 
-        if(workshopInfo.clubPhotoList.length === 0){
+        if(workshopInfo.workshopPhotoList.length === 0){
             //기본 이미지 삽입
             const defaultUrl = 'https://firebasestorage.googleapis.com/v0/b/dailygreen-6e49d.appspot.com/o/Clubs%2FClubImages%2Fdummyimg_if_no_img_on_m.jpg?alt=media&token=c2894173-0832-4126-b212-79fb935478b5';
             const insertWorkshopPhotoUrlRow = await workshopDao.insertWorkshopPhotoUrl(connection, workshopIdx, userIdxFromJWT, defaultUrl);
@@ -248,6 +248,36 @@ exports.createWorkshopFollowing = async function (userIdx, workshopIdx) {
 
         connection.rollback();
         logger.error(`App - createWorkshopFollowing Service error\n: ${err.message} \n${JSON.stringify(err)}`);
+        return errResponse(baseResponse.DB_ERROR);
+
+    }finally {
+
+        connection.release();
+
+    }
+}
+
+
+//워크샵 삭제하기
+exports.deleteWorkshop = async function (userIdx, workshopIdx) {
+
+    const connection = await pool.getConnection(async (conn) => conn);
+
+    try {
+        await connection.beginTransaction();
+
+
+        const deleteClubInfoResult = await workshopDao.deleteWorkshopInfo(connection, workshopIdx);
+        const deleteClubPhotoUrlsResult = await workshopDao.deleteWorkshopPhotoUrls(connection, workshopIdx);
+
+        const deleteClubTagsResult = await workshopDao.deleteWorkshopTags(connection, workshopIdx);
+        connection.commit();
+        return response(baseResponse.DELETE_WORKSHOP_SUCCESS);
+
+    }catch (err) {
+
+        connection.rollback();
+        logger.error(`App - deleteWorkshop Service error\n: ${err.message} \n${JSON.stringify(err)}`);
         return errResponse(baseResponse.DB_ERROR);
 
     }finally {

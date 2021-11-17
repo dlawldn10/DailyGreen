@@ -395,6 +395,111 @@ async function updateWorkshopFollowInfo(connection, userIdx, workshopIdx, status
 }
 
 
+//워크샵 삭제
+async function deleteWorkshopInfo(connection, workshopIdx) {
+
+    const insertStoryTagQuery = `
+        UPDATE Workshops SET status = 'DELETED' WHERE workshopIdx = ?;
+    `;
+
+    const insertStoryTagRow = await connection.query(
+        insertStoryTagQuery,
+        workshopIdx
+    );
+
+
+    return insertStoryTagRow[0];
+}
+
+
+
+//사진 url 삭제
+async function deleteWorkshopPhotoUrls(connection, workshopIdx) {
+
+    const insertStoryTagQuery = `
+        UPDATE WorkshopPhotoUrls SET status = 'DELETED' WHERE workshopIdx = ?;
+    `;
+
+
+    const insertStoryTagRow = await connection.query(
+        insertStoryTagQuery,
+        workshopIdx
+    );
+
+    return insertStoryTagRow[0];
+}
+
+
+//워크샵에 붙은 태그 삭제
+async function deleteWorkshopTags(connection, workshopIdx) {
+
+    const insertStoryTagQuery = `
+        UPDATE WorkshopHashTags SET status = 'DELETED' WHERE workshopIdx = ?;
+    `;
+
+
+    const insertStoryTagRow = await connection.query(
+        insertStoryTagQuery,
+        workshopIdx
+    );
+
+    return insertStoryTagRow[0];
+}
+
+
+//워크샵 검색
+async function selectSearchedWorkshopList(connection, communityIdx, limit, page, keyword) {
+
+    const selectClubsQuery = `
+        SELECT C.workshopIdx,
+               C.userIdx,
+               U.nickname,
+               U.profilePhotoUrl,
+               C.workshopName,
+               C.locationDetail,
+               C.maxPeopleNum,
+               C.bio,
+               CONCAT(date_format(C.when, '%Y.%m.%d '),
+                      case WEEKDAY(C.\`when\`)
+                          when '0' then '월요일'
+                          when '1' then '화요일'
+                          when '2' then '수요일'
+                          when '3' then '목요일'
+                          when '4' then '금요일'
+                          when '5' then '토요일'
+                          when '6' then '일요일'
+                          end, ' ',
+                      case date_format(C.when, '%p')
+                          when 'PM' then '오후'
+                          when 'AM' then '오전'
+                          end, ' ',
+                      date_format(C.when, '%l시'),
+                      if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                         date_format(C.\`when\`, ' %i분')))     as \`when\`,
+               CONCAT('D-', DATEDIFF(date(C.\`when\`), now())) as Dday,
+               CPU.url                                         as workshopPhoto
+        FROM Workshops C
+                 LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U
+                           on C.userIdx = U.userIdx
+                 LEFT JOIN (SELECT workshopIdx, url FROM WorkshopPhotoUrls GROUP BY workshopIdx) CPU
+                           on C.workshopIdx = CPU.workshopIdx
+        WHERE C.status = 'ACTIVE'
+          AND U.status = 'ACTIVE'
+          AND C.communityIdx = ?
+          AND DATEDIFF(date(C.\`when\`), now()) > 0 AND C.workshopName LIKE '%${keyword}%'
+        ORDER BY C.updatedAt DESC
+        LIMIT ? OFFSET ?;
+    `;
+
+    const selectClubListRow = await connection.query(
+        selectClubsQuery,
+        [communityIdx, limit, page]
+    );
+
+    return selectClubListRow[0];
+
+}
+
 module.exports = {
     insertWorkshopInfo,
     insertWorkshopPhotoUrl,
@@ -416,7 +521,11 @@ module.exports = {
     updateOneWorkshopTag,
     selectIfWorkshopFollowExist,
     insertWorkshopFollowInfo,
-    updateWorkshopFollowInfo
+    updateWorkshopFollowInfo,
+    deleteWorkshopInfo,
+    deleteWorkshopPhotoUrls,
+    deleteWorkshopTags,
+    selectSearchedWorkshopList
 
 
 

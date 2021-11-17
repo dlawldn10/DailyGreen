@@ -29,6 +29,8 @@ module.exports = {
     CANCEL_SHOPLIKE_SUCCESS : { "isSuccess": true, "code": 1021, "message":"관심상점에서 제외되었습니다." },
     REINSERT_SHOPLIKE_SUCCESS : { "isSuccess": true, "code": 1022, "message":"관심상점에 다시 추가되었습니다." },
     DELETE_FEED_SUCCESS : { "isSuccess": true, "code": 1023, "message":"게시물 삭제 성공." },
+    DELETE_CLUB_SUCCESS : { "isSuccess": true, "code": 1024, "message":"모임 삭제 성공." },
+    DELETE_WORKSHOP_SUCCESS : { "isSuccess": true, "code": 1025, "message":"워크샵 삭제 성공." },
 
 
     //Request error
@@ -88,6 +90,7 @@ module.exports = {
     SIGNUP_PHONENUM_TYPE_ERROR : { "isSuccess": false, "code": 2045, "message":"전화번호 형식이 올바르지 않습니다. '-' 없이 입력해주세요." },
     COMMENT_CONTENT_EMPTY: { "isSuccess": false, "code": 2046, "message":"댓글 내용을 입력해주세요." },
     SHOPIDX_EMPTY: { "isSuccess": false, "code": 2047, "message":"shopIdx을(를) 입력해주세요." },
+    KEYWORD_EMPTY: { "isSuccess": false, "code": 2048, "message":"검색어를 입력해주세요." },
 
 
     // Response error

@@ -113,3 +113,52 @@ exports.retrieveClub = async function (userIdx, clubIdx) {
 
 }
 
+
+exports.retrieveSearchedClubList = async function (userIdx, page, limit, communityIdx, keyword) {
+
+    console.log(keyword);
+    const connection = await pool.getConnection(async (conn) => conn);
+    connection.beginTransaction();
+
+    const clubListResult = await clubDao.selectSearchedClubList(connection, communityIdx, limit, page, keyword);
+
+    let clubList = [];
+    for(let i = 0; i<clubListResult.length; i++){
+        const clubIdx = clubListResult[i].clubIdx;
+
+        const nowFollowingCountResult = await clubDao.selectClubFollowers(connection, clubIdx);
+        let profilePhotoUrlListObj = {}
+        if(nowFollowingCountResult[0].nowFollowing == 0){
+            profilePhotoUrlListObj = {}
+        }else{
+            const photoUrlListResult = await clubDao.selectThreeFollowingUsersProfilePhotos(connection, clubIdx);
+            profilePhotoUrlListObj = {
+                clubIdx : clubListResult[i].clubIdx,
+                urlList: photoUrlListResult
+            }
+        }
+
+
+        const tagListResult = await clubDao.selectClubTags(connection, clubIdx);
+        let tagListObj = {};
+        if(tagListResult[0] != null) {
+            tagListObj = {
+                clubIdx: clubIdx,
+                tagList: tagListResult
+            }
+        }
+
+        const Result ={
+            clubInfoObj: Object.assign(clubListResult[i], nowFollowingCountResult[0]),
+            profilePhotoUrlListObj: profilePhotoUrlListObj,
+            clubTagListObj: tagListObj
+        }
+
+        clubList.push(Result);
+    }
+
+    connection.release();
+
+    return clubList;
+
+};

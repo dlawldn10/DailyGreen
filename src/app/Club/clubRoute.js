@@ -23,4 +23,10 @@ module.exports = function(app) {
     //모임 참가/취소
     app.post('/app/clubs/follow', jwtMiddleware, upload.none(), club.postClubFollowing);
 
+    //모임 삭제
+    app.patch('/app/clubs/:clubIdx', jwtMiddleware, upload.none(), club.deleteMyClub);
+
+    //모임 검색
+    app.get('/app/communities/:communityIdx/clubs/searches', jwtMiddleware, club.getSearchedClubList);
+
 }

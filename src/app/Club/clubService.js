@@ -263,3 +263,39 @@ exports.createClubFollowing = async function (userIdx, clubIdx) {
 
     }
 }
+
+
+//모임 삭제
+exports.deleteClub = async function (userIdx, clubIdx) {
+
+    const connection = await pool.getConnection(async (conn) => conn);
+
+    try {
+        await connection.beginTransaction();
+
+
+        const deleteClubInfoResult = await clubDao.deleteClubInfo(connection, clubIdx);
+        const deleteClubPhotoUrlsResult = await clubDao.deleteClubPhotoUrls(connection, clubIdx);
+        const clubTypeResult = await clubDao.selectClubType(connection, clubIdx);
+
+        if(clubTypeResult[0].isRegular == 0){
+            connection.commit();
+            return response(baseResponse.DELETE_CLUB_SUCCESS);
+        }
+
+        const deleteClubTagsResult = await clubDao.deleteClubTags(connection, clubIdx);
+        connection.commit();
+        return response(baseResponse.DELETE_CLUB_SUCCESS);
+
+    }catch (err) {
+
+        connection.rollback();
+        logger.error(`App - deleteClub Service error\n: ${err.message} \n${JSON.stringify(err)}`);
+        return errResponse(baseResponse.DB_ERROR);
+
+    }finally {
+
+        connection.release();
+
+    }
+}

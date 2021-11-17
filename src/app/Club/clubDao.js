@@ -424,6 +424,127 @@ async function updateClubFollowInfo(connection, userIdx, clubIdx, status) {
 }
 
 
+//모임 삭제
+async function deleteClubInfo(connection, clubIdx) {
+
+    const insertStoryTagQuery = `
+        UPDATE Clubs SET status = 'DELETED' WHERE clubIdx = ?;
+    `;
+
+    const insertStoryTagRow = await connection.query(
+        insertStoryTagQuery,
+        clubIdx
+    );
+
+
+    return insertStoryTagRow[0];
+}
+
+
+
+//사진 url 삭제
+async function deleteClubPhotoUrls(connection, clubIdx) {
+
+    const insertStoryTagQuery = `
+        UPDATE ClubPhotoUrls SET status = 'DELETED' WHERE clubIdx = ?;
+    `;
+
+
+    const insertStoryTagRow = await connection.query(
+        insertStoryTagQuery,
+        clubIdx
+    );
+
+    return insertStoryTagRow[0];
+}
+
+
+//모임에 붙은 태그 삭제
+async function deleteClubTags(connection, clubIdx) {
+
+    const insertStoryTagQuery = `
+        UPDATE ClubHashTags SET status = 'DELETED' WHERE clubIdx = ?;
+    `;
+
+
+    const insertStoryTagRow = await connection.query(
+        insertStoryTagQuery,
+        clubIdx
+    );
+
+    return insertStoryTagRow[0];
+}
+
+
+//정기, 비정기 인지
+async function selectClubType(connection, clubIdx) {
+
+    const insertStoryTagQuery = `
+        SELECT isRegular FROM Clubs WHERE clubIdx = ?;
+    `;
+
+
+    const insertStoryTagRow = await connection.query(
+        insertStoryTagQuery,
+        clubIdx
+    );
+
+    return insertStoryTagRow[0];
+}
+
+//모임 검색
+async function selectSearchedClubList(connection, communityIdx, limit, page, keyword) {
+
+    const selectClubsQuery = `
+        SELECT C.isRegular,
+               C.clubIdx,
+               C.userIdx,
+               U.nickname,
+               U.profilePhotoUrl,
+               C.clubName,
+               C.locationDetail,
+               C.maxPeopleNum,
+               C.bio,
+               CONCAT(date_format(C.when, '%Y.%m.%d '),
+                      case WEEKDAY(C.\`when\`)
+                          when '0' then '월요일'
+                          when '1' then '화요일'
+                          when '2' then '수요일'
+                          when '3' then '목요일'
+                          when '4' then '금요일'
+                          when '5' then '토요일'
+                          when '6' then '일요일'
+                          end, ' ',
+                      case date_format(C.when, '%p')
+                          when 'PM' then '오후'
+                          when 'AM' then '오전'
+                          end, ' ',
+                      date_format(C.when, '%l시'),
+                      if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                         date_format(C.\`when\`, ' %i분')))     as \`when\`,
+               CONCAT('D-', DATEDIFF(date(C.\`when\`), now())) as Dday,
+       CPU.url as clubPhoto
+        FROM Clubs C
+            LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U
+        on C.userIdx = U.userIdx
+            LEFT JOIN (SELECT clubIdx, url FROM ClubPhotoUrls GROUP BY clubIdx) CPU on C.clubIdx = CPU.clubIdx
+        WHERE C.status = 'ACTIVE' AND U.status = 'ACTIVE' AND C.communityIdx = ?
+          AND DATEDIFF(date(C.\`when\`), now()) > 0 AND C.clubName LIKE '%${keyword}%'
+        ORDER BY C.updatedAt DESC LIMIT ?
+        OFFSET ?;
+    `;
+
+    const selectClubListRow = await connection.query(
+        selectClubsQuery,
+        [communityIdx, limit, page]
+    );
+
+    return selectClubListRow[0];
+
+}
+
+
+
 module.exports = {
     insertClubInfo,
     insertClubPhotoUrl,
@@ -447,6 +568,11 @@ module.exports = {
     updateOneHashTag,
     selectIfClubFollowExist,
     insertClubFollowInfo,
-    updateClubFollowInfo
+    updateClubFollowInfo,
+    deleteClubInfo,
+    deleteClubPhotoUrls,
+    deleteClubTags,
+    selectClubType,
+    selectSearchedClubList
 
 };

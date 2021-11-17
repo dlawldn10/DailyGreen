@@ -74,7 +74,7 @@ exports.getWorkshopList = async function (req, res){
     const communityIdx = req.params.communityIdx;
     const userIdxFromJWT = req.verifiedToken.userIdx;
 
-    const limit = 5;
+    const limit = 15;
 
     if (!userIdxFromJWT)
         return res.send(errResponse(baseResponse.TOKEN_EMPTY));
@@ -183,5 +183,58 @@ exports.postWorkshopFollowing = async function (req, res){
 
     const createWorkshopFollowingResult = await workshopService.createWorkshopFollowing(userIdxFromJWT, workshopIdx);
     return res.send(createWorkshopFollowingResult);
+
+}
+
+
+//워크샵 삭제
+exports.deleteMyWorkshop = async function (req, res){
+
+    const workshopIdx = req.params.workshopIdx;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!workshopIdx)
+        return res.send(errResponse(baseResponse.WORKSHOPIDX_EMPTY));
+
+    const deleteWorkshopResult = await workshopService.deleteWorkshop(userIdxFromJWT, workshopIdx);
+    return res.send(deleteWorkshopResult);
+
+}
+
+
+//검색 워크샵 조회
+exports.getSearchedWorkshopList = async function (req, res){
+
+    const keyword = req.query.keyword;
+    let page = req.query.page;
+    const communityIdx = req.params.communityIdx;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    const limit = 15;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!communityIdx)
+        return res.send(errResponse(baseResponse.COMMUNITYIDX_EMPTY));
+    else if (!keyword)
+        return res.send(errResponse(baseResponse.KEYWORD_EMPTY));
+
+    if(limit-page < 0){
+
+        page = 0;
+
+    }else if(page == 0 || !page){
+
+        return res.send(errResponse(baseResponse.PAGECOUNT_WRONG));
+    }else{
+
+        page = (page-1)*limit
+
+    }
+
+    const workshopListResult = await workshopProvider.retrieveSearchedWorkshopList(userIdxFromJWT, page, limit, communityIdx, keyword);
+    return res.send(response(baseResponse.SUCCESS, workshopListResult));
 
 }

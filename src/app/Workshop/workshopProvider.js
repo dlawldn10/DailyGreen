@@ -110,3 +110,51 @@ exports.retrieveWorkshop = async function (userIdx, workshopIdx){
 
     return Result;
 }
+
+exports.retrieveSearchedWorkshopList = async function (userIdx, page, limit, communityIdx, keyword) {
+
+    const connection = await pool.getConnection(async (conn) => conn);
+    connection.beginTransaction();
+
+    const workshopListResult = await workshopDao.selectSearchedWorkshopList(connection, communityIdx, limit, page, keyword);
+
+    let workshopList = [];
+    for(let i = 0; i<workshopListResult.length; i++){
+        const workshopIdx = workshopListResult[i].workshopIdx;
+
+        const nowFollowingCountResult = await workshopDao.selectWorkshopFollowers(connection, workshopIdx);
+        let profilePhotoUrlListObj = {}
+        if(nowFollowingCountResult[0].nowFollowing == 0){
+            profilePhotoUrlListObj = {}
+        }else{
+            const photoUrlListResult = await workshopDao.selectThreeFollowingUsersProfilePhotos(connection, workshopIdx);
+            profilePhotoUrlListObj = {
+                workshopIdx : workshopListResult[i].workshopIdx,
+                urlList: photoUrlListResult
+            }
+        }
+
+
+        const tagListResult = await workshopDao.selectWorkshopTags(connection, workshopIdx);
+        let tagListObj = {};
+        if(tagListResult[0] != null) {
+            tagListObj = {
+                workshopIdx: workshopIdx,
+                tagList: tagListResult
+            }
+        }
+
+        const Result ={
+            workshopInfoObj: Object.assign(workshopListResult[i], nowFollowingCountResult[0]),
+            profilePhotoUrlListObj: profilePhotoUrlListObj,
+            workshopTagListObj: tagListObj
+        }
+
+        workshopList.push(Result);
+    }
+
+    connection.release();
+
+    return workshopList;
+
+};

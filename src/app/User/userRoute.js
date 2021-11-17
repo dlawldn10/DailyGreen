@@ -39,8 +39,9 @@ module.exports = function(app){
 
 
     //마이페이지
-    app.get('/app/users', jwtMiddleware, upload.none(), user.getMyPage);
+    app.get('/app/users/:userIdx', jwtMiddleware, upload.none(), user.getMyPage);
 
-
+    //회원정보 수정
+    app.post('/app/users', upload.single('profilePhoto'), user.postOriginUser);
 
 };

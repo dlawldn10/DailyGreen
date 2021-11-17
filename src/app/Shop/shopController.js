@@ -38,7 +38,7 @@ exports.getLikedShopList = async function (req, res){
     let page = req.query.page;
     const userIdxFromJWT = req.verifiedToken.userIdx;
 
-    const limit = 5;
+    const limit = 15;
 
     if (!userIdxFromJWT)
         return res.send(errResponse(baseResponse.TOKEN_EMPTY));

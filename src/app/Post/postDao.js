@@ -22,7 +22,7 @@ async function selectPostList(connection, page, limit, communityIdx) {
 };
 
 // 홈화면 포스팅 사진 리스트
-async function selectPostPhotoUrls(connection, userIdx, postIdx) {
+async function selectPostPhotoUrls(connection, postIdx) {
     const selectPostsQuery = `
     SELECT PPU.url
     FROM PostPhotoUrls PPU
@@ -286,6 +286,45 @@ async function updateLikeInfo(connection, userIdx, postIdx, status) {
 
 
 
+// 특정 인물이 쓴 게시물 리스트
+async function selectCreatedPostList(connection, page, limit, communityIdx, userIdx) {
+
+    const selectPostsQuery = `
+        SELECT A.userIdx, A.nickname, A.profilePhotoUrl,
+               P.postIdx, P.caption
+        FROM Posts P
+        LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl FROM Users) A ON A.userIdx = P.userIdx
+        WHERE P.status = 'ACTIVE' AND P.communityIdx = ? AND P.userIdx = ?
+        ORDER BY P.updatedAt DESC LIMIT ? OFFSET ?;
+    `;
+
+    const selectUserAccountRow = await connection.query(
+        selectPostsQuery,
+        [communityIdx, userIdx, limit, page]
+    );
+
+
+    return selectUserAccountRow[0];
+};
+
+// 홈화면 포스팅 사진 리스트
+async function selectCreatedPostPhotoUrls(connection, postIdx) {
+    const selectPostsQuery = `
+    SELECT PPU.url
+    FROM PostPhotoUrls PPU
+    WHERE PPU.postIdx = ? AND PPU.status = 'ACTIVE';
+  `;
+
+    const selectPostPhotoRow = await connection.query(
+        selectPostsQuery,
+        postIdx
+    );
+
+    return selectPostPhotoRow[0];
+};
+
+
+
 
 module.exports = {
 
@@ -306,6 +345,7 @@ module.exports = {
     selectIfLikeExist,
     insertLikeInfo,
     updateLikeInfo,
-    deletePost
+    selectCreatedPostList,
+    selectCreatedPostPhotoUrls
 
 };

@@ -91,7 +91,7 @@ exports.getClubList = async function (req, res){
     const communityIdx = req.params.communityIdx;
     const userIdxFromJWT = req.verifiedToken.userIdx;
 
-    const limit = 5;
+    const limit = 15;
 
     if (!userIdxFromJWT)
         return res.send(errResponse(baseResponse.TOKEN_EMPTY));
@@ -205,5 +205,57 @@ exports.postClubFollowing = async function (req, res){
 
     const retrieveClubResult = await clubService.createClubFollowing(userIdxFromJWT, clubIdx);
     return res.send(retrieveClubResult);
+
+}
+
+
+//모임 삭제
+exports.deleteMyClub = async function (req, res){
+
+    const clubIdx = req.params.clubIdx;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!clubIdx)
+        return res.send(errResponse(baseResponse.CLUBIDX_EMPTY));
+
+    const retrieveClubResult = await clubService.deleteClub(userIdxFromJWT, clubIdx);
+    return res.send(retrieveClubResult);
+
+}
+
+//검색 모임 조회
+exports.getSearchedClubList = async function (req, res){
+
+    const keyword = req.query.keyword;
+    let page = req.query.page;
+    const communityIdx = req.params.communityIdx;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    const limit = 15;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!communityIdx)
+        return res.send(errResponse(baseResponse.COMMUNITYIDX_EMPTY));
+    else if (!keyword)
+        return res.send(errResponse(baseResponse.KEYWORD_EMPTY));
+
+    if(limit-page < 0){
+
+        page = 0;
+
+    }else if(page == 0 || !page){
+
+        return res.send(errResponse(baseResponse.PAGECOUNT_WRONG));
+    }else{
+
+        page = (page-1)*limit
+
+    }
+
+    const postsFromFollowingUsers = await clubProvider.retrieveSearchedClubList(userIdxFromJWT, page, limit, communityIdx, keyword);
+    return res.send(response(baseResponse.SUCCESS, postsFromFollowingUsers));
 
 }
