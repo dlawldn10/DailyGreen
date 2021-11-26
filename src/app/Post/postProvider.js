@@ -9,7 +9,7 @@ exports.retrievePostList = async function (userIdx, page, limit, communityIdx) {
     const connection = await pool.getConnection(async (conn) => conn);
     connection.beginTransaction();
 
-    const postListResult = await postDao.selectPostList(connection, page, limit, communityIdx);
+    const postListResult = await postDao.selectPostList(connection, userIdx, page, limit, communityIdx);
 
     let postList = [];
     for(let i = 0; i<postListResult.length; i++){
@@ -53,12 +53,12 @@ exports.retrievePostList = async function (userIdx, page, limit, communityIdx) {
 
 
 //특정 인물이 쓴 게시물 커뮤니티별 조회
-exports.retrieveCreatedPostList = async function (userIdxFromJWT, userIdx, page, limit, communityIdx) {
+exports.retrieveCreatedPostList = async function (userIdxFromJWT, userIdx, page, limit) {
 
     const connection = await pool.getConnection(async (conn) => conn);
     connection.beginTransaction();
 
-    const postListResult = await postDao.selectCreatedPostList(connection, page, limit, communityIdx, userIdx);
+    const postListResult = await postDao.selectCreatedPostList(connection, page, limit, userIdx);
 
     let postList = [];
     for(let i = 0; i<postListResult.length; i++){

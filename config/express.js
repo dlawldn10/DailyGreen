@@ -32,6 +32,8 @@ module.exports = function () {
     require('../src/app/Post/postRoute')(app);
     require('../src/app/Comment/commentRoute')(app);
     require('../src/app/Shop/shopRoute')(app);
+    require('../src/app/Chat/chatRoute')(app);
+    require('../src/app/Report/reportRoute')(app);
 
     return app;
 };

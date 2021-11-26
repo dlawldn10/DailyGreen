@@ -1,11 +1,8 @@
-const jwtMiddleware = require("../../../config/jwtMiddleware");
 const postProvider = require("../../app/Post/postProvider");
 const postService = require("../../app/Post/postService");
 const baseResponse = require("../../../config/baseResponseStatus");
 const {response, errResponse} = require("../../../config/response");
 
-const {emit} = require("nodemon");
-const clubProvider = require("../../app/Club/clubProvider");
 
 //게시물 올리기
 exports.postMyPost = async function (req, res) {
@@ -140,7 +137,6 @@ exports.getCreatedPostList = async function (req, res){
 
     let page = req.query.page;
     const userIdx = req.params.userIdx;
-    const communityIdx = req.params.communityIdx;
     const userIdxFromJWT = req.verifiedToken.userIdx;
 
     const limit = 15;
@@ -149,8 +145,6 @@ exports.getCreatedPostList = async function (req, res){
         return res.send(errResponse(baseResponse.TOKEN_EMPTY));
     else if (!userIdx)
         return res.send(errResponse(baseResponse.USERIDX_EMPTY));
-    else if (!communityIdx)
-        return res.send(errResponse(baseResponse.COMMUNITYIDX_EMPTY));
 
     if(limit-page < 0){
 
@@ -165,7 +159,7 @@ exports.getCreatedPostList = async function (req, res){
 
     }
 
-    const retrievePostsResult = await postProvider.retrieveCreatedPostList(userIdxFromJWT, userIdx, page, limit, communityIdx);
+    const retrievePostsResult = await postProvider.retrieveCreatedPostList(userIdxFromJWT, userIdx, page, limit);
     return res.send(response(baseResponse.SUCCESS, retrievePostsResult));
 
 }

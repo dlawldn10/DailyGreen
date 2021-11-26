@@ -43,6 +43,10 @@ exports.retrieveShop = async function (userIdx, shopIdx) {
     const shopResult = await shopDao.selectShop(connection, userIdx, shopIdx);
     const shopUrlListResult = await shopDao.selectShopPhotoUrls(connection, shopIdx);
 
+    if(shopResult[0].phoneNum === '000-0000-0000'){
+        shopResult[0].phoneNum = '';
+    }
+
     const Result = {
         shopInfoObj : shopResult[0],
         shopPhotoUrlList : shopUrlListResult

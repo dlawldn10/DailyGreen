@@ -11,7 +11,7 @@ exports.retrieveWorkshopList = async function (userIdx, page, limit, communityId
     const connection = await pool.getConnection(async (conn) => conn);
     connection.beginTransaction();
 
-    const workshopListResult = await workshopDao.selectWorkshopList(connection, communityIdx, limit, page);
+    const workshopListResult = await workshopDao.selectWorkshopList(connection, communityIdx, userIdx, limit, page);
 
     let workshopList = [];
     for(let i = 0; i<workshopListResult.length; i++){

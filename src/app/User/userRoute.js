@@ -33,6 +33,14 @@ module.exports = function(app){
     //자체 로그인
     app.post('/app/login', upload.none(), user.originLogin);
 
+    //애플 회원가입
+    app.post('/app/users/apple', upload.single('profilePhoto'), user.postAppleUsers);
+
+    //애플 로그인
+    app.post('/app/login/apple', upload.none(), user.appleLogin);
+
+
+
     //홈화면 - 이벤트 배너
     app.get('/app/users/events', jwtMiddleware, upload.none(), user.getEvents);
 
@@ -42,6 +50,11 @@ module.exports = function(app){
     app.get('/app/users/:userIdx', jwtMiddleware, upload.none(), user.getMyPage);
 
     //회원정보 수정
-    app.post('/app/users', upload.single('profilePhoto'), user.postOriginUser);
+    app.patch('/app/users', jwtMiddleware, upload.single('profilePhoto'), user.patchUserProfile);
+
+    //회원탈퇴
+    app.patch('/app/users/:userIdx', jwtMiddleware, upload.none(), user.patchUserStatus);
+
+
 
 };

@@ -90,7 +90,7 @@ async function insertWorkshopFeeInfo(connection, clubIdx, fee, feeType) {
 
 
 //워크샵탭 조회
-async function selectWorkshopList(connection, communityIdx, limit, page) {
+async function selectWorkshopList(connection, communityIdx, userIdx, limit, page) {
 
     const selectWorkshopsQuery = `
         SELECT C.workshopIdx,
@@ -125,6 +125,8 @@ async function selectWorkshopList(connection, communityIdx, limit, page) {
         on C.userIdx = U.userIdx
             LEFT JOIN (SELECT workshopIdx, url FROM WorkshopPhotoUrls GROUP BY workshopIdx) CPU on C.workshopIdx = CPU.workshopIdx
         WHERE C.status = 'ACTIVE' AND U.status = 'ACTIVE' AND C.communityIdx = ?
+          AND C.userIdx not in (SELECT toUserIdx FROM BlockUsers WHERE fromUserIdx = ? )
+          AND C.userIdx not in (SELECT fromUserIdx FROM BlockUsers WHERE toUserIdx = ? )
           AND DATEDIFF(date(C.\`when\`), now()) > 0
         ORDER BY C.updatedAt DESC LIMIT ?
         OFFSET ?;
@@ -132,7 +134,7 @@ async function selectWorkshopList(connection, communityIdx, limit, page) {
 
     const selectWorkshopListRow = await connection.query(
         selectWorkshopsQuery,
-        [communityIdx, limit, page]
+        [communityIdx, userIdx, userIdx, limit, page]
     );
 
     return selectWorkshopListRow[0];

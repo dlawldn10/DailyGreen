@@ -30,13 +30,16 @@ async function selectCommentList(connection, userIdx, postIdx) {
                    WHEN TIMESTAMPDIFF(DAY, C.updatedAt, NOW()) < 30 THEN CONCAT(TIMESTAMPDIFF(DAY, C.updatedAt, NOW()), '일 전')
                    ELSE CONCAT(TIMESTAMPDIFF(MONTH, C.updatedAt, NOW()), '달 전')
                    END AS agoTime FROM Comments C
-                                           LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl FROM Users) A ON A.userIdx = C.userIdx
-        WHERE C.postIdx = ? AND C.status = 'ACTIVE' ORDER BY C.updatedAt DESC ;
+    LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl FROM Users) A ON A.userIdx = C.userIdx
+        WHERE C.postIdx = ? AND C.status = 'ACTIVE'
+          AND C.userIdx not in (SELECT toUserIdx FROM BlockUsers WHERE fromUserIdx = ? )
+          AND C.userIdx not in (SELECT fromUserIdx FROM BlockUsers WHERE toUserIdx = ? )
+        ORDER BY C.updatedAt DESC ;
     `;
 
     const selectCommentRow = await connection.query(
         selectCommentQuery,
-        postIdx
+        [postIdx, userIdx, userIdx]
     );
 
     return selectCommentRow[0];

@@ -73,6 +73,7 @@ exports.retrieveMyPage = async function (userIdx) {
   const connection = await pool.getConnection(async (conn) => conn);
   const selectMyPageResult = await userDao.selectMyPage(connection, userIdx);
   const selectMyPageCntsResult = await userDao.selectMyPageCnts(connection, userIdx);
+  const selectCreatedEventResult = await userDao.selectCreatedEvents(connection, userIdx);
   const selectMyPageEventResult = await userDao.selectParticipatingEvents(connection, userIdx);
 
   const exp = selectMyPageCntsResult[0].participationCnt*100
@@ -95,6 +96,7 @@ exports.retrieveMyPage = async function (userIdx) {
 
   const Result = {
     myInfo : Object.assign({}, selectMyPageResult[0], myInfoObj),
+    createdInfo: selectCreatedEventResult[0],
     participatingInfo: selectMyPageEventResult[0]
   }
   connection.release();

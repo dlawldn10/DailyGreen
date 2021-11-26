@@ -31,7 +31,11 @@ module.exports = {
     DELETE_FEED_SUCCESS : { "isSuccess": true, "code": 1023, "message":"게시물 삭제 성공." },
     DELETE_CLUB_SUCCESS : { "isSuccess": true, "code": 1024, "message":"모임 삭제 성공." },
     DELETE_WORKSHOP_SUCCESS : { "isSuccess": true, "code": 1025, "message":"워크샵 삭제 성공." },
-
+    UPDATE_USERINFO_SUCCESS : { "isSuccess": true, "code": 1026, "message":"회원정보 수정 성공." },
+    SEND_MESSAGE_SUCCESS : { "isSuccess": true, "code": 1027, "message":"메세지 전송 성공."},
+    UPDATE_USERSTATUS_SUCCESS : { "isSuccess": true, "code": 1028, "message":"회원 탈퇴 성공" },
+    REPORT_SUCCESS : { "isSuccess": true, "code": 1029, "message":"신고 접수가 완료되었습니다." },
+    BLOCK_SUCCESS : { "isSuccess": true, "code": 1030, "message":"차단되었습니다." },
 
     //Request error
     SIGNUP_APPLE_ACCESSTOKEN_EMPTY : { "isSuccess": false, "code": 2001, "message":"애플 액세스 토큰을(를) 입력해주세요" },
@@ -91,6 +95,11 @@ module.exports = {
     COMMENT_CONTENT_EMPTY: { "isSuccess": false, "code": 2046, "message":"댓글 내용을 입력해주세요." },
     SHOPIDX_EMPTY: { "isSuccess": false, "code": 2047, "message":"shopIdx을(를) 입력해주세요." },
     KEYWORD_EMPTY: { "isSuccess": false, "code": 2048, "message":"검색어를 입력해주세요." },
+    MESSAGE_EMPTY: { "isSuccess": false, "code": 2049, "message":"내용을 입력해주세요." },
+    IDX_EMPTY: { "isSuccess": false, "code": 2050, "message":"idx을(를) 입력해주세요." },
+    REPORT_CONTENT_EMPTY: { "isSuccess": false, "code": 2051, "message":"신고 내용을 입력해주세요." },
+    REPORT_SORT_EMPTY: { "isSuccess": false, "code": 2052, "message":"종류를 입력해주세요." },
+    APPLE_AUTH_ERROR: { "isSuccess": false, "code": 2053, "message":"Apple Auth 코드 에러." },
 
 
     // Response error
@@ -104,6 +113,7 @@ module.exports = {
     COMMUNITY_FOLLOW_ERROR : { "isSuccess": false, "code": 3010, "message": "이미 해당 커뮤니티에 참여하고 있습니다." },
     COMMUNITY_UNFOLLOW_ERROR : { "isSuccess": false, "code": 3011, "message": "이미 해당 커뮤니티에 참여하고 있지 않습니다." },
     PHONE_NUMBER_SMS_ERROR : { "isSuccess": false, "code": 3012, "message": "SMS 문자 전송에 실패하였습니다." },
+    FAILED_GETIING_APPLE_EMAIL: { "isSuccess": false, "code": 3013, "message": "애플 이메일 가져오기 실패" },
 
     //Connection, Transaction 등의 서버 오류
     DB_ERROR : { "isSuccess": false, "code": 4000, "message": "데이터 베이스 에러"},

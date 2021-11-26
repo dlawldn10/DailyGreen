@@ -27,7 +27,7 @@ module.exports = function(app) {
     app.patch('/app/posts/:postIdx', jwtMiddleware, upload.none(), post.deleteMyPost);
 
     // 마이페이지 - 특정 인물이 쓴 게시물 태그별로 보기
-    app.get('/app/users/:userIdx/communities/:communityIdx/posts', jwtMiddleware, post.getCreatedPostList);
+    app.get('/app/users/:userIdx/posts', jwtMiddleware, post.getCreatedPostList);
 
 
 }

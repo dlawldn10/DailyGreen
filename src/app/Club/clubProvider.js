@@ -11,7 +11,7 @@ exports.retrieveClubList = async function (userIdx, page, limit, communityIdx) {
     const connection = await pool.getConnection(async (conn) => conn);
     connection.beginTransaction();
 
-    const clubListResult = await clubDao.selectClubList(connection, communityIdx, limit, page);
+    const clubListResult = await clubDao.selectClubList(connection, communityIdx, userIdx, limit, page);
 
     let clubList = [];
     for(let i = 0; i<clubListResult.length; i++){

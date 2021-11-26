@@ -2,19 +2,7 @@ const clubProvider = require("../../app/Club/clubProvider");
 const clubService = require("../../app/Club/clubService");
 const baseResponse = require("../../../config/baseResponseStatus");
 const {response, errResponse} = require("../../../config/response");
-const admin = require('firebase-admin');
-const multer = require('multer');
-const stream = require('stream');
-const serviceAccount = require('../../../dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json');
-const request = require("request");
-let firebaseAdmin = admin;
-console.log(admin.apps.length);
-if (!admin.apps.length) {
-    firebaseAdmin = admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        storageBucket: 'dailygreen-6e49d.appspot.com'
-    });
-}
+
 
 
 //모임 생성

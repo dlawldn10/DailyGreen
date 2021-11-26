@@ -1,7 +1,7 @@
 
 
 // 홈화면 포스팅 리스트
-async function selectPostList(connection, page, limit, communityIdx) {
+async function selectPostList(connection, userIdx, page, limit, communityIdx) {
 
     const selectPostsQuery = `
         SELECT A.userIdx, A.nickname, A.profilePhotoUrl,
@@ -9,12 +9,14 @@ async function selectPostList(connection, page, limit, communityIdx) {
         FROM Posts P
         LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl FROM Users) A ON A.userIdx = P.userIdx
         WHERE P.status = 'ACTIVE' AND P.communityIdx = ?
+          AND P.userIdx not in (SELECT toUserIdx FROM BlockUsers WHERE fromUserIdx = ? )
+          AND P.userIdx not in (SELECT fromUserIdx FROM BlockUsers WHERE toUserIdx = ? )
         ORDER BY P.updatedAt DESC LIMIT ? OFFSET ?;
     `;
 
     const selectUserAccountRow = await connection.query(
         selectPostsQuery,
-        [communityIdx, limit, page]
+        [communityIdx, userIdx, userIdx, limit, page]
     );
 
 
@@ -287,20 +289,20 @@ async function updateLikeInfo(connection, userIdx, postIdx, status) {
 
 
 // 특정 인물이 쓴 게시물 리스트
-async function selectCreatedPostList(connection, page, limit, communityIdx, userIdx) {
+async function selectCreatedPostList(connection, page, limit, userIdx) {
 
     const selectPostsQuery = `
         SELECT A.userIdx, A.nickname, A.profilePhotoUrl,
-               P.postIdx, P.caption
+               P.postIdx, P.communityIdx, P.caption
         FROM Posts P
         LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl FROM Users) A ON A.userIdx = P.userIdx
-        WHERE P.status = 'ACTIVE' AND P.communityIdx = ? AND P.userIdx = ?
+        WHERE P.status = 'ACTIVE' AND P.userIdx = ?
         ORDER BY P.updatedAt DESC LIMIT ? OFFSET ?;
     `;
 
     const selectUserAccountRow = await connection.query(
         selectPostsQuery,
-        [communityIdx, userIdx, limit, page]
+        [userIdx, limit, page]
     );
 
 

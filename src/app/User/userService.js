@@ -9,9 +9,8 @@ const {errResponse} = require("../../../config/response");
 
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const {connect} = require("http2");
 const admin = require("firebase-admin");
-const serviceAccount = require("../../../dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json");
+const serviceAccount = require('../../../secretKey/dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json');
 const stream = require("stream");
 
 let firebaseAdmin = admin;
@@ -65,6 +64,7 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
             const uploadProfilePhotoResult = await uploadToFirebaseStorage(connection, userInfo, insertUserResult[0].insertId);
 
             await connection.commit();
+
 
             return response(baseResponse.SUCCESS, {
                 'userIdx': insertUserResult[0].insertId,
@@ -130,6 +130,8 @@ exports.postKakaoSignIn = async function (accessTokenInfo) {
         );
 
         return response(baseResponse.SUCCESS, {
+            'userIdx': accountInfoRows[0].userIdx,
+            'accountIdx': accountInfoRows[0].accountIdx,
             'nickname': userInfoRows[0].nickname,
             'profilePhotoUrl': userInfoRows[0].profilePhotoUrl,
             'jwt': token
@@ -142,6 +144,52 @@ exports.postKakaoSignIn = async function (accessTokenInfo) {
 };
 
 
+//애플 로그인
+exports.postAppleSignIn = async function (accessTokenInfo) {
+    try {
+        // 계정 존재 및 상태 확인
+        const accountInfoRowParams = ['apple', accessTokenInfo.email];
+        const accountInfoRows = await userProvider.accountCheck(accountInfoRowParams);
+
+        if(accountInfoRows[0] === undefined){
+            return errResponse(baseResponse.ACCOUNT_NOT_EXIST);
+        }
+        else if (accountInfoRows[0].status === "INACTIVE") {
+            return errResponse(baseResponse.SIGNIN_INACTIVE_ACCOUNT);
+        }
+        else if (accountInfoRows[0].status === "DELETED") {
+            return errResponse(baseResponse.SIGNIN_WITHDRAWAL_ACCOUNT);
+        }
+
+        //유저 정보 가져오기
+        const userInfoRows = await userProvider.retrieveUserProfile(accountInfoRows[0].userIdx);
+
+        //토큰 생성 Service
+        let token = await jwt.sign(
+            {
+                userIdx: accountInfoRows[0].userIdx,
+                accountIdx: userInfoRows[0].accountIdx
+            }, // 토큰의 내용(payload)
+            secret_config.jwtsecret, // 비밀키
+            {
+                expiresIn: "365d",
+                subject: "userInfo",
+            } // 유효 기간 365일
+        );
+
+        return response(baseResponse.SUCCESS, {
+            'userIdx': accountInfoRows[0].userIdx,
+            'accountIdx': accountInfoRows[0].accountIdx,
+            'nickname': userInfoRows[0].nickname,
+            'profilePhotoUrl': userInfoRows[0].profilePhotoUrl,
+            'jwt': token
+        });
+
+    } catch (err) {
+        logger.error(`App - postAppleSignIn Service error\n: ${err.message} \n${JSON.stringify(err)}`);
+        return errResponse(baseResponse.DB_ERROR);
+    }
+};
 
 //자체 로그인
 exports.postOriginSignIn= async function (userInfo) {
@@ -178,8 +226,8 @@ exports.postOriginSignIn= async function (userInfo) {
         //토큰 생성 Service
         let token = await jwt.sign(
             {
-                userIdx: userInfo.userIdx,
-                accountIdx: userInfo.accountIdx
+                userIdx: accountInfoRows[0].userIdx,
+                accountIdx: accountInfoRows[0].accountIdx
             }, // 토큰의 내용(payload)
             secret_config.jwtsecret, // 비밀키
             {
@@ -189,6 +237,8 @@ exports.postOriginSignIn= async function (userInfo) {
         );
 
         return response(baseResponse.SUCCESS, {
+            'userIdx': accountInfoRows[0].userIdx,
+            'accountIdx': accountInfoRows[0].accountIdx,
             'nickname': userInfoRows[0].nickname,
             'profilePhotoUrl': userInfoRows[0].profilePhotoUrl,
             'jwt': token
@@ -199,6 +249,82 @@ exports.postOriginSignIn= async function (userInfo) {
         return errResponse(baseResponse.DB_ERROR);
     }
 };
+
+
+
+//회원 정보 수정
+exports.patchUser = async function (userInfo) {
+    const connection = await pool.getConnection(async (conn) => conn);
+
+    try {
+        await connection.beginTransaction();
+        if(!userInfo.bio) {
+            //자기소개 없으면 업데이트 안함.
+        }else{
+            //자기소개 업데이트
+            const insertUserResult = await userDao.updateUserBio(connection, userInfo.bio, userInfo.userIdx);
+        }
+
+        //프사 수정 여부
+        if(!userInfo.profilePhoto){
+            //프사 수정 안함
+            const UserInfoResult = await userDao.selectUserInfo(connection, userInfo.userIdx);
+
+            await connection.commit();
+            return response(baseResponse.UPDATE_USERINFO_SUCCESS,
+                Object.assign({'userIdx': userInfo.userIdx}, UserInfoResult[0]));
+
+        }else{
+            //프사 수정함
+            //프사 업로드
+            const uploadProfilePhotoResult = await uploadToFirebaseStorage(connection, userInfo, userInfo.userIdx);
+            const UserInfoResult = await userDao.selectUserInfo(connection, userInfo.userIdx);
+
+            await connection.commit();
+
+            return response(baseResponse.UPDATE_USERINFO_SUCCESS,
+                Object.assign({'userIdx': userInfo.userIdx}, UserInfoResult[0]));
+        }
+
+
+
+
+    } catch (err) {
+
+        await connection.rollback();
+        logger.error(`App - createUser Service error\n: ${err.message}`);
+        return errResponse(baseResponse.DB_ERROR);
+
+    }finally {
+        connection.release();
+    }
+};
+
+
+//회원 탈퇴
+exports.deleteUser = async function (userIdx) {
+    const connection = await pool.getConnection(async (conn) => conn);
+
+    try {
+        await connection.beginTransaction();
+        const deleteUserResult = await userDao.updateUserStatus(connection, userIdx, 'DELETED');
+        const deleteAccountResult = await userDao.updateAccountStatus(connection, userIdx, 'DELETED');
+
+        connection.commit();
+        return response(baseResponse.UPDATE_USERSTATUS_SUCCESS);
+
+
+    } catch (err) {
+
+        await connection.rollback();
+        logger.error(`App - createUser Service error\n: ${err.message}`);
+        return errResponse(baseResponse.DB_ERROR);
+
+    }finally {
+        connection.release();
+    }
+};
+
 
 
 async function uploadToFirebaseStorage(connection, userInfo, userIdx) {

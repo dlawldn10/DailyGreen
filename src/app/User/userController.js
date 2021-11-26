@@ -7,12 +7,16 @@ const {response, errResponse} = require("../../../config/response");
 const Cache = require('memory-cache');
 const regexEmail = require("regex-email");
 
-const admin = require('firebase-admin');
-const stream = require('stream');
-const serviceAccount = require('../../../dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json');
 const request = require("request");
 
 const crypto = require("crypto");
+
+const jwt = require('jsonwebtoken');
+const path = require('path');
+const AppleAuth = require('apple-auth');
+const appleConfig = require('../../../config/apple.json');
+// const auth = new AppleAuth(appleConfig, path.join(__dirname, `../../../secretKey/AuthKey_7DQH2L92P5.p8`));
+
 
 
 // res.redirect('download?imgName=' + image.originalname);
@@ -78,6 +82,55 @@ exports.postKaKaoUsers = async function (req ,res) {
 
     const signUpResponse = await userService.createUser('kakao', userInfo, accessTokenInfo);
     return res.send(signUpResponse);
+
+};
+
+//애플 회원가입
+exports.postAppleUsers = async function (req ,res) {
+    try {
+    let code = req.body.code;
+
+    if (!code) {
+        return res.send(response(baseResponse.SIGNUP_APPLE_ACCESSTOKEN_EMPTY));
+    }
+    const auth = new AppleAuth(appleConfig, path.join(__dirname, `../../../secretKey/AuthKey_7DQH2L92P5.p8`));
+    const TokenResponse = await auth.accessToken(code);
+    const idToken = jwt.decode(TokenResponse.id_token);
+    // const sub = idToken.sub;
+
+
+    const userInfo = {
+        password: 'tmpPassword',
+        phoneNum: '00000000000',
+        profilePhoto: req.file,
+        nickname: req.body.nickname,
+        bio: req.body.bio
+    }
+
+    const accessTokenInfo = {
+        email: idToken.email
+    }
+
+
+    // 빈 값 체크
+    if (!userInfo.nickname)
+        return res.send(response(baseResponse.SIGNUP_NICKNAME_EMPTY));
+    else if (!userInfo.bio)
+        return res.send(response(baseResponse.SIGNUP_BIO_EMPTY));
+    else if (!accessTokenInfo.email)
+        return res.send(response(baseResponse.FAILED_GETIING_APPLE_EMAIL));
+    else if (!userInfo.profilePhoto)
+        return res.send(response(baseResponse.SIGNUP_PROFILEPHOTO_EMPTY));
+
+
+
+    const signUpResponse = await userService.createUser('apple', userInfo, accessTokenInfo);
+    return res.send(signUpResponse);
+
+    } catch (ex) {
+        console.error(ex);
+        res.send(baseResponse.APPLE_AUTH_ERROR);
+    }
 
 };
 
@@ -234,6 +287,33 @@ exports.kakaoLogin = async function (req, res) {
 
 };
 
+//애플 로그인
+exports.appleLogin = async function (req, res) {
+
+
+    let code = req.body.code;
+
+    if (!code) {
+        return res.send(response(baseResponse.SIGNUP_APPLE_ACCESSTOKEN_EMPTY));
+    }
+
+    const auth = new AppleAuth(appleConfig, path.join(__dirname, `../../../secretKey/AuthKey_7DQH2L92P5.p8`));
+    const TokenResponse = await auth.accessToken(code);
+    const idToken = jwt.decode(TokenResponse.id_token);
+
+    const accessTokenInfo = {
+        email: idToken.email,
+        accessToken : code
+    }
+
+
+
+    const signUpResponse = await userService.postAppleSignIn(accessTokenInfo);
+    return res.send(signUpResponse);
+
+
+};
+
 
 //홈화면 - 이벤트 배너
 exports.getEvents = async function (req, res) {
@@ -249,6 +329,27 @@ exports.getEvents = async function (req, res) {
 
 
 };
+
+
+//회원 탈퇴
+exports.patchUserStatus = async function (req, res) {
+
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+    const userIdx = req.params.userIdx;
+
+    // 빈 값 체크
+    if (!userIdxFromJWT)
+        return res.send(response(baseResponse.TOKEN_EMPTY));
+    else if (!userIdx)
+        return res.send(response(baseResponse.USERIDX_EMPTY));
+
+    const deleteUserResult = await userService.deleteUser(userIdx);
+    return res.send(deleteUserResult);
+
+
+};
+
+
 
 
 //자체 회원가입
@@ -349,6 +450,30 @@ exports.getMyPage = async function (req, res) {
 
 
 };
+
+
+//회원정보 수정
+exports.patchUserProfile = async function (req ,res) {
+
+
+    const userInfo = {
+        userIdx: req.verifiedToken.userIdx,
+        profilePhoto: req.file,
+        bio: req.body.bio
+    }
+
+
+
+    const signUpResponse = await userService.patchUser(userInfo);
+    return res.send(signUpResponse);
+
+
+
+
+};
+
+
+
 
 
 /** JWT 토큰 검증 API

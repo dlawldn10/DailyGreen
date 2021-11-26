@@ -2,13 +2,6 @@ const workshopProvider = require("../../app/Workshop/workshopProvider");
 const workshopService = require("../../app/Workshop/workshopService");
 const baseResponse = require("../../../config/baseResponseStatus");
 const {response, errResponse} = require("../../../config/response");
-const admin = require('firebase-admin');
-const multer = require('multer');
-const stream = require('stream');
-const serviceAccount = require('../../../dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json');
-const request = require("request");
-const clubService = require("../../app/Club/clubService");
-
 
 //워크샵 생성
 exports.postWorkshop = async function (req, res) {
@@ -238,3 +231,5 @@ exports.getSearchedWorkshopList = async function (req, res){
     return res.send(response(baseResponse.SUCCESS, workshopListResult));
 
 }
+
+

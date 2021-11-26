@@ -1,18 +1,14 @@
 const {logger} = require("../../../config/winston");
 const {pool} = require("../../../config/database");
-const secret_config = require("../../../config/secret");
 const clubProvider = require("./clubProvider");
 const clubDao = require("./clubDao");
 const baseResponse = require("../../../config/baseResponseStatus");
 const {response} = require("../../../config/response");
 const {errResponse} = require("../../../config/response");
 
-const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
-const {connect} = require("http2");
 const stream = require("stream");
 const admin = require("firebase-admin");
-const serviceAccount = require("../../../dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json");
+const serviceAccount = require('../../../secretKey/dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json');
 let firebaseAdmin = admin;
 if (!admin.apps.length) {
     firebaseAdmin = admin.initializeApp({

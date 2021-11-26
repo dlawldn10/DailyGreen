@@ -8,7 +8,7 @@ const {response} = require("../../../config/response");
 const {errResponse} = require("../../../config/response");
 const stream = require("stream");
 const admin = require("firebase-admin");
-const serviceAccount = require("../../../dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json");
+const serviceAccount = require('../../../secretKey/dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json');
 let firebaseAdmin = admin;
 if (!admin.apps.length) {
     firebaseAdmin = admin.initializeApp({

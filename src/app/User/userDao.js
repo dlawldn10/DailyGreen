@@ -25,6 +25,47 @@ async function insertUserInfo(connection, userInfo) {
   return insertUserInfoRow;
 }
 
+// 유저 정보 수정 - bio
+async function updateUserBio(connection, bio, userIdx) {
+  const insertUserInfoQuery = `
+    UPDATE Users SET bio = ? WHERE userIdx = ?;
+  `;
+  const insertUserInfoRow = await connection.query(
+      insertUserInfoQuery,
+      [bio, userIdx]
+  );
+
+  return insertUserInfoRow;
+}
+
+
+// 유저 탈퇴
+async function updateUserStatus(connection, userIdx, status) {
+  const insertUserInfoQuery = `
+    UPDATE Users SET status = ? WHERE userIdx = ?;
+  `;
+  const insertUserInfoRow = await connection.query(
+      insertUserInfoQuery,
+      [status, userIdx]
+  );
+
+  return insertUserInfoRow;
+}
+
+
+// 계정 탈퇴
+async function updateAccountStatus(connection, userIdx, status) {
+  const insertUserInfoQuery = `
+    UPDATE Accounts SET status = ? WHERE userIdx = ?;
+  `;
+  const insertUserInfoRow = await connection.query(
+      insertUserInfoQuery,
+      [status, userIdx]
+  );
+
+  return insertUserInfoRow;
+}
+
 
 
 //계정 생성
@@ -101,6 +142,7 @@ async function selectSimpleUserProfile(connection, userIdx) {
 async function selectCloseEvents(connection) {
   const selectUserAccountQuery = `(
     SELECT C.clubIdx as idx,
+           C.communityIdx,
            C.clubName as name,
            C.locationDetail,
            CONCAT(date_format(C.when, '%Y.%m.%d '),
@@ -131,6 +173,7 @@ async function selectCloseEvents(connection) {
 UNION ALL
 (
     SELECT C.workshopIdx as idx,
+           C.communityIdx,
            C.workshopName as name,
            C.locationDetail,
            CONCAT(date_format(C.when, '%Y.%m.%d '),
@@ -202,7 +245,7 @@ async function selectUserPassword(connection, selectUserPasswordParams) {
 // 마이페이지 조회
 async function selectMyPage(connection, userIdx) {
   const selectMyPageQuery = `
-    SELECT userIdx, nickname, profilePhotoUrl FROM Users WHERE userIdx = ?;
+    SELECT userIdx, nickname, profilePhotoUrl, bio FROM Users WHERE userIdx = ?;
     `;
 
   const selectMyPageRow = await connection.query(selectMyPageQuery, userIdx);
@@ -289,8 +332,89 @@ ORDER BY Dday ASC;`;
 };
 
 
+//마이페이지 - 주최한 이벤트 조회
+async function selectCreatedEvents(connection, userIdx) {
+  const selectMyPageQuery = `
+    (SELECT CF.toClubIdx as idx,
+        if(C.isRegular = 0 AND TN.table_name = 'Clubs', '모임', '정기모임') as type,
+        C.clubName as name,
+        CONCAT(date_format(C.when, '%Y.%m.%d '),
+               case WEEKDAY(C.\`when\`)
+                   when '0' then '월요일'
+                   when '1' then '화요일'
+                   when '2' then '수요일'
+                   when '3' then '목요일'
+                   when '4' then '금요일'
+                   when '5' then '토요일'
+                   when '6' then '일요일'
+                   end, ' ',
+               case date_format(C.when, '%p')
+                   when 'PM' then '오후'
+                   when 'AM' then '오전'
+                   end, ' ',
+               date_format(C.when, '%l시'),
+               if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                  date_format(C.\`when\`, ' %i분'))) as \`when\`,
+        C.locationDetail,
+        DATEDIFF(date(C.\`when\`), now()) as Dday FROM ClubFollowings CF
+LEFT JOIN (SELECT userIdx, clubIdx, clubName, \`when\`, locationDetail, isRegular, status FROM Clubs) C ON C.clubIdx = CF.toClubIdx
+INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Clubs%') TN
+ WHERE C.userIdx = 5 AND C.status = 'ACTIVE'
+ GROUP BY idx)
+UNION ALL
+(SELECT CF.toWorkshopIdx as idx,
+        if(TN.table_name = 'Workshops', '워크샵', '워크샵') as type,
+        C.workshopName as name,
+        CONCAT(date_format(C.when, '%Y.%m.%d '),
+               case WEEKDAY(C.\`when\`)
+                   when '0' then '월요일'
+                   when '1' then '화요일'
+                   when '2' then '수요일'
+                   when '3' then '목요일'
+                   when '4' then '금요일'
+                   when '5' then '토요일'
+                   when '6' then '일요일'
+                   end, ' ',
+               case date_format(C.when, '%p')
+                   when 'PM' then '오후'
+                   when 'AM' then '오전'
+                   end, ' ',
+               date_format(C.when, '%l시'),
+               if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                  date_format(C.\`when\`, ' %i분'))) as \`when\`,
+        C.locationDetail,
+        DATEDIFF(date(C.\`when\`), now()) as Dday FROM WorkshopFollowings CF
+LEFT JOIN (SELECT userIdx, workshopIdx, workshopName, \`when\`, locationDetail, status FROM Workshops) C ON C.workshopIdx = CF.toWorkshopIdx
+INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Workshops%') TN
+WHERE C.userIdx = 5 AND C.status = 'ACTIVE'
+GROUP BY idx)
+ORDER BY Dday ASC
+;`;
+  const selectMyPageRow = await connection.query(
+      selectMyPageQuery,
+      [userIdx, userIdx]
+  );
 
-  module.exports = {
+  return selectMyPageRow;
+};
+
+
+// 유저 정보 불러오기
+async function selectUserInfo(connection, userIdx) {
+  const selectUserPasswordQuery = `
+        SELECT profilePhotoUrl, nickname, bio
+        FROM Users 
+        WHERE userIdx = ?`;
+  const selectUserPasswordRow = await connection.query(
+      selectUserPasswordQuery,
+      userIdx
+  );
+
+  return selectUserPasswordRow[0];
+};
+
+
+module.exports = {
   insertUserInfo,
   selectUserAccount,
   selectNickname,
@@ -302,6 +426,11 @@ ORDER BY Dday ASC;`;
   selectUserPassword,
   selectMyPage,
   selectParticipatingEvents,
-  selectMyPageCnts
+  selectMyPageCnts,
+  updateUserBio,
+  selectUserInfo,
+  updateUserStatus,
+  updateAccountStatus,
+  selectCreatedEvents
 
 };

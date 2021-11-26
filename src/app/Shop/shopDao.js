@@ -5,10 +5,10 @@ async function selectShopList(connection, userIdx, limit, page) {
 
     const selectClubsQuery = `
         SELECT S.shopIdx, S.shopName,
-               S.locationDetail, CPU.url, ifnull(SL.isShopLiked, 0) as isShopLiked
+               S.locationDetail, CPU.url,
+               (SELECT COUNT(*) as isShopLiked FROM ShopLikes WHERE status = 'ACTIVE' AND userIdx = ? AND shopIdx = S.shopIdx) as isShopLiked
         FROM Shops S
                  LEFT JOIN (SELECT shopIdx, url FROM ShopPhotoUrls GROUP BY shopIdx) CPU on S.shopIdx = CPU.shopIdx
-                 LEFT JOIN (SELECT shopIdx, COUNT(*) as isShopLiked FROM ShopLikes WHERE status = 'ACTIVE' AND userIdx = ?) SL on SL.shopIdx = S.shopIdx
         WHERE S.status = 'ACTIVE'
         ORDER BY S.createdAt DESC LIMIT ?
         OFFSET ?;
@@ -32,7 +32,7 @@ async function selectLikedShopList(connection, userIdx, limit, page) {
         FROM ShopLikes SL
                  LEFT JOIN (SELECT shopIdx, url FROM ShopPhotoUrls GROUP BY shopIdx) CPU on SL.shopIdx = CPU.shopIdx
                  LEFT JOIN (SELECT shopIdx, shopName, locationDetail, status, createdAt FROM Shops) S on S.shopIdx = SL.shopIdx
-        WHERE S.status = 'ACTIVE' AND SL.userIdx = ?
+        WHERE S.status = 'ACTIVE' AND SL.userIdx = ? AND SL.status = 'ACTIVE'
         ORDER BY S.createdAt DESC LIMIT ? OFFSET ?;
     `;
 
@@ -51,17 +51,23 @@ async function selectShop(connection, userIdx, shopIdx) {
 
     const selectClubsQuery = `
         SELECT S.shopIdx, U.userIdx, U.nickname, U.profilePhotoUrl,
-               S.shopName, S.locationDetail, S.phoneNum,
+               S.shopName, S.locationDetail,
+               CASE LENGTH(S.phoneNum)
+                   WHEN 11
+                       THEN CONCAT(LEFT(S.phoneNum, 3), '-', MID(S.phoneNum, 4, 4), '-', RIGHT(S.phoneNum, 4))
+                   WHEN 10
+                       THEN CONCAT(LEFT(S.phoneNum, 3), '-', MID(S.phoneNum, 4, 3), '-', RIGHT(S.phoneNum, 4))
+                   END AS phoneNum,
                S.website, S.bio, ifnull(SL.isShopLiked, 0) as isShopLiked
         FROM Shops S
                  LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl FROM Users) U on S.userIdx = U.userIdx
-                 LEFT JOIN (SELECT shopIdx, COUNT(*) as isShopLiked FROM ShopLikes WHERE status = 'ACTIVE' AND userIdx = ?) SL on SL.shopIdx = S.shopIdx
+                 LEFT JOIN (SELECT shopIdx, COUNT(*) as isShopLiked FROM ShopLikes WHERE status = 'ACTIVE' AND userIdx = ? AND shopIdx = ?) SL on SL.shopIdx = S.shopIdx
         WHERE S.status = 'ACTIVE' AND S.shopIdx = ?;
     `;
 
     const selectClubListRow = await connection.query(
         selectClubsQuery,
-        [userIdx, shopIdx]
+        [userIdx, shopIdx, shopIdx]
     );
 
     return selectClubListRow[0];
@@ -99,6 +105,7 @@ async function selectIfLikeExist(connection, accountIdx, shopIdx) {
 
 
 }
+
 
 
 //좋아요 저장

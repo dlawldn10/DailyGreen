@@ -90,7 +90,7 @@ async function insertClubFeeInfo(connection, clubIdx, fee, feeType) {
 }
 
 //모임탭 조회
-async function selectClubList(connection, communityIdx, limit, page) {
+async function selectClubList(connection, communityIdx, userIdx, limit, page) {
 
     const selectClubsQuery = `
         SELECT C.isRegular,
@@ -126,6 +126,8 @@ async function selectClubList(connection, communityIdx, limit, page) {
         on C.userIdx = U.userIdx
             LEFT JOIN (SELECT clubIdx, url FROM ClubPhotoUrls GROUP BY clubIdx) CPU on C.clubIdx = CPU.clubIdx
         WHERE C.status = 'ACTIVE' AND U.status = 'ACTIVE' AND C.communityIdx = ?
+          AND C.userIdx not in (SELECT toUserIdx FROM BlockUsers WHERE fromUserIdx = ? )
+          AND C.userIdx not in (SELECT fromUserIdx FROM BlockUsers WHERE toUserIdx = ? )
           AND DATEDIFF(date(C.\`when\`), now()) > 0
         ORDER BY C.updatedAt DESC LIMIT ?
         OFFSET ?;
@@ -133,7 +135,7 @@ async function selectClubList(connection, communityIdx, limit, page) {
 
     const selectClubListRow = await connection.query(
         selectClubsQuery,
-        [communityIdx, limit, page]
+        [communityIdx, userIdx, userIdx,limit, page]
     );
 
     return selectClubListRow[0];
