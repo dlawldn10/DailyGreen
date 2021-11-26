@@ -1,24 +1,18 @@
-# IlsangGreen
+# DailyGreen - 일상그린
 ssac 3기 아이비(Ivy)/임지우 - 1st CMC CX Server
 
 
-**10/31 진행 상황**
--	Dev, prod 서버 구축 및 점검
--	ERD 설계
+2021.09.15~2021.12.18
+
+## API 명세서
+https://docs.google.com/spreadsheets/d/1sDzMr9R0qr4wUZ4uCYxlgZ59t5mmjHGxVQEttNIEsPQ/edit?usp=sharing
 
 
-**10/31 발생 이슈**
-1.	디자인/기획
--	태그(키워드) 등록 관련:
-  - 정기 모임과 워크샵만 태그(키워드) 등록 가능
--	사진 개수 관련:
-  - 리뷰, 비정기 모임 -> 1장
-  - 정기모임, 워크샵, 피드 -> 최대 5장 까지
-2.	서버
--	이미지 처리 방법 관련 방법 상의. 결정은 아직 X:
-    1)	프론트에서 외부 DB(firebase 등)에 이미지 게시 후 url받아서 서버로 보내고 서버는 url만 저장
-    2)	프론트에서 multer 이용해서 서버에 이미지 파일 보낸 후 서버가 자체 DB에 이미지 저장, url저장
-    3)	프론트에서 multer 이용해서 서버에 이미지 파일 보낸 후 서버가 파일 받아서 자체 DB말고 외부 DB(firebase 등)에 저장, 자체 DB에 url저장.
-3.	IOS
--	애플 로그인 access token 존재 여부
+## 회의록
+https://makeus-challenge.notion.site/99c5bfc231dc4ed7949bae37b3f245fd
+
+
+## 시연영상 모음
+https://makeus-challenge.notion.site/50a798a8876e437abf9132934dde36df
+
 
