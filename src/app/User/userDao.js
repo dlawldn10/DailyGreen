@@ -210,6 +210,46 @@ ORDER BY Dday ASC LIMIT 3 OFFSET 0;
 
 };
 
+//가장 가까운날 개최되는 모임들.
+async function selectCloseClubs(connection) {
+  const selectUserAccountQuery = `
+    SELECT C.clubIdx as idx,
+           C.communityIdx,
+           C.clubName as name,
+           C.locationDetail,
+           CONCAT(date_format(C.when, '%Y.%m.%d '),
+                  case WEEKDAY(C.\`when\`)
+                      when '0' then '월요일'
+                      when '1' then '화요일'
+                      when '2' then '수요일'
+                      when '3' then '목요일'
+                      when '4' then '금요일'
+                      when '5' then '토요일'
+                      when '6' then '일요일'
+                      end, ' ',
+                  case date_format(C.when, '%p')
+                      when 'PM' then '오후'
+                      when 'AM' then '오전'
+                      end, ' ',
+                  date_format(C.when, '%l시'),
+                  if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                     date_format(C.\`when\`, ' %i분')))     as \`when\`,
+           DATEDIFF(date(C.\`when\`), now()) as Dday,
+           CPU.url as photo,
+           if(C.isRegular = 0 AND TN.table_name = 'Clubs', '모임', '정기모임') as type
+    FROM Clubs C
+             LEFT JOIN (SELECT clubIdx, url FROM ClubPhotoUrls GROUP BY clubIdx) CPU on C.clubIdx = CPU.clubIdx
+            INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Clubs%') TN
+    WHERE C.status = 'ACTIVE' AND DATEDIFF(date(C.\`when\`), now()) > 0
+ORDER BY Dday ASC LIMIT 3 OFFSET 0;
+        `;
+  const selectUserAccountRow = await connection.query(
+      selectUserAccountQuery
+  );
+  return selectUserAccountRow[0];
+
+};
+
 
 
 // 프사 삽입
@@ -253,13 +293,28 @@ async function selectMyPage(connection, userIdx) {
   return selectMyPageRow[0];
 };
 
+//워크샵 있을 때 버전
+// async function selectMyPageCnts(connection, userIdx) {
+//   const selectMyPageQuery = `
+//     SELECT
+//         (SELECT COUNT(*) FROM ClubFollowings WHERE fromUserIdx = ${userIdx}) +
+//         (SELECT COUNT(*) FROM WorkshopFollowings WHERE fromUserIdx = ${userIdx} ) as participationCnt,
+//         (SELECT COUNT(*) FROM Clubs WHERE userIdx = ${userIdx}) +
+//         (SELECT COUNT(*) FROM Workshops WHERE userIdx = ${userIdx}) as createdCWCnt,
+//         (SELECT COUNT(*) FROM Posts WHERE userIdx = ${userIdx}) as createdPostCnt;`;
+//
+//   const selectMyPageRow = await connection.query(selectMyPageQuery);
+//
+//   return selectMyPageRow[0];
+// };
+
+
+//워크샵 없을때 버전
 async function selectMyPageCnts(connection, userIdx) {
   const selectMyPageQuery = `
     SELECT
-        (SELECT COUNT(*) FROM ClubFollowings WHERE fromUserIdx = ${userIdx}) +
-        (SELECT COUNT(*) FROM WorkshopFollowings WHERE fromUserIdx = ${userIdx} ) as participationCnt,
-        (SELECT COUNT(*) FROM Clubs WHERE userIdx = ${userIdx}) +
-        (SELECT COUNT(*) FROM Workshops WHERE userIdx = ${userIdx}) as createdCWCnt,
+        (SELECT COUNT(*) FROM ClubFollowings WHERE fromUserIdx = ${userIdx})as participationCnt,
+        (SELECT COUNT(*) FROM Clubs WHERE userIdx = ${userIdx}) as createdCWCnt,
         (SELECT COUNT(*) FROM Posts WHERE userIdx = ${userIdx}) as createdPostCnt;`;
 
   const selectMyPageRow = await connection.query(selectMyPageQuery);
@@ -268,136 +323,217 @@ async function selectMyPageCnts(connection, userIdx) {
 };
 
 
-// 마이페이지 -참여중인 이벤트 조회
+// 마이페이지 -참여중인 이벤트 조회 - 워크샵 있을때 버전
+// async function selectParticipatingEvents(connection, userIdx) {
+//   const selectMyPageQuery = `
+//     (SELECT CF.toClubIdx as idx,
+//         if(C.isRegular = 0 AND TN.table_name = 'Clubs', '모임', '정기모임') as type,
+//         C.clubName as name,
+//         CONCAT(date_format(C.when, '%Y.%m.%d '),
+//                case WEEKDAY(C.\`when\`)
+//                    when '0' then '월요일'
+//                    when '1' then '화요일'
+//                    when '2' then '수요일'
+//                    when '3' then '목요일'
+//                    when '4' then '금요일'
+//                    when '5' then '토요일'
+//                    when '6' then '일요일'
+//                    end, ' ',
+//                case date_format(C.when, '%p')
+//                    when 'PM' then '오후'
+//                    when 'AM' then '오전'
+//                    end, ' ',
+//                date_format(C.when, '%l시'),
+//                if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+//                   date_format(C.\`when\`, ' %i분'))) as \`when\`,
+//         C.locationDetail,
+//         DATEDIFF(date(C.\`when\`), now()) as Dday FROM ClubFollowings CF
+// LEFT JOIN (SELECT clubIdx, clubName, \`when\`, locationDetail, isRegular, status FROM Clubs) C ON C.clubIdx = CF.toClubIdx
+// INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Clubs%') TN
+//  WHERE fromUserIdx = ? AND C.status = 'ACTIVE')
+// UNION ALL
+// (SELECT CF.toWorkshopIdx as idx,
+//        if(TN.table_name = 'Workshops', '워크샵', '워크샵') as type,
+//        C.workshopName as name,
+//        CONCAT(date_format(C.when, '%Y.%m.%d '),
+//               case WEEKDAY(C.\`when\`)
+//                   when '0' then '월요일'
+//                   when '1' then '화요일'
+//                   when '2' then '수요일'
+//                   when '3' then '목요일'
+//                   when '4' then '금요일'
+//                   when '5' then '토요일'
+//                   when '6' then '일요일'
+//                   end, ' ',
+//               case date_format(C.when, '%p')
+//                   when 'PM' then '오후'
+//                   when 'AM' then '오전'
+//                   end, ' ',
+//               date_format(C.when, '%l시'),
+//               if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+//                  date_format(C.\`when\`, ' %i분'))) as \`when\`,
+//        C.locationDetail,
+//        DATEDIFF(date(C.\`when\`), now()) as Dday FROM WorkshopFollowings CF
+// LEFT JOIN (SELECT workshopIdx, workshopName, \`when\`, locationDetail, status FROM Workshops) C ON C.workshopIdx = CF.toWorkshopIdx
+// INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Workshops%') TN
+// WHERE CF.fromUserIdx = ? AND C.status = 'ACTIVE' )
+// ORDER BY Dday ASC;`;
+//   const selectMyPageRow = await connection.query(
+//       selectMyPageQuery,
+//       [userIdx, userIdx]
+//   );
+//
+//   return selectMyPageRow;
+// };
+
+
+// 마이페이지 -참여중인 이벤트 조회 - 워크샵 없을때 버전
 async function selectParticipatingEvents(connection, userIdx) {
   const selectMyPageQuery = `
-    (SELECT CF.toClubIdx as idx,
-        if(C.isRegular = 0 AND TN.table_name = 'Clubs', '모임', '정기모임') as type,
-        C.clubName as name,
-        CONCAT(date_format(C.when, '%Y.%m.%d '),
-               case WEEKDAY(C.\`when\`)
-                   when '0' then '월요일'
-                   when '1' then '화요일'
-                   when '2' then '수요일'
-                   when '3' then '목요일'
-                   when '4' then '금요일'
-                   when '5' then '토요일'
-                   when '6' then '일요일'
-                   end, ' ',
-               case date_format(C.when, '%p')
-                   when 'PM' then '오후'
-                   when 'AM' then '오전'
-                   end, ' ',
-               date_format(C.when, '%l시'),
-               if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
-                  date_format(C.\`when\`, ' %i분'))) as \`when\`,
-        C.locationDetail,
-        DATEDIFF(date(C.\`when\`), now()) as Dday FROM ClubFollowings CF
-LEFT JOIN (SELECT clubIdx, clubName, \`when\`, locationDetail, isRegular, status FROM Clubs) C ON C.clubIdx = CF.toClubIdx
-INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Clubs%') TN
- WHERE fromUserIdx = ? AND C.status = 'ACTIVE')
-UNION ALL
-(SELECT CF.toWorkshopIdx as idx,
-       if(TN.table_name = 'Workshops', '워크샵', '워크샵') as type,
-       C.workshopName as name,
-       CONCAT(date_format(C.when, '%Y.%m.%d '),
-              case WEEKDAY(C.\`when\`)
-                  when '0' then '월요일'
-                  when '1' then '화요일'
-                  when '2' then '수요일'
-                  when '3' then '목요일'
-                  when '4' then '금요일'
-                  when '5' then '토요일'
-                  when '6' then '일요일'
-                  end, ' ',
-              case date_format(C.when, '%p')
-                  when 'PM' then '오후'
-                  when 'AM' then '오전'
-                  end, ' ',
-              date_format(C.when, '%l시'),
-              if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
-                 date_format(C.\`when\`, ' %i분'))) as \`when\`,
-       C.locationDetail,
-       DATEDIFF(date(C.\`when\`), now()) as Dday FROM WorkshopFollowings CF
-LEFT JOIN (SELECT workshopIdx, workshopName, \`when\`, locationDetail, status FROM Workshops) C ON C.workshopIdx = CF.toWorkshopIdx
-INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Workshops%') TN
-WHERE CF.fromUserIdx = ? AND C.status = 'ACTIVE' )
-ORDER BY Dday ASC;`;
+    SELECT CF.toClubIdx as idx,
+           if(C.isRegular = 0 , '모임', '정기모임') as type,
+           C.clubName as name,
+           CONCAT(date_format(C.when, '%Y.%m.%d '),
+                  case WEEKDAY(C.\`when\`)
+                    when '0' then '월요일'
+                    when '1' then '화요일'
+                    when '2' then '수요일'
+                    when '3' then '목요일'
+                    when '4' then '금요일'
+                    when '5' then '토요일'
+                    when '6' then '일요일'
+                    end, ' ',
+                  case date_format(C.when, '%p')
+                    when 'PM' then '오후'
+                    when 'AM' then '오전'
+                    end, ' ',
+                  date_format(C.when, '%l시'),
+                  if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                     date_format(C.\`when\`, ' %i분'))) as \`when\`,
+           C.locationDetail,
+           DATEDIFF(date(C.\`when\`), now()) as Dday
+    FROM ClubFollowings CF
+           LEFT JOIN (SELECT clubIdx, clubName, \`when\`, locationDetail, isRegular, status FROM Clubs) C
+                     ON C.clubIdx = CF.toClubIdx
+    WHERE fromUserIdx = ? AND C.status = 'ACTIVE'
+    ORDER BY Dday ASC;
+    `;
   const selectMyPageRow = await connection.query(
       selectMyPageQuery,
-      [userIdx, userIdx]
+      userIdx
   );
 
   return selectMyPageRow;
 };
 
 
-//마이페이지 - 주최한 이벤트 조회
+//마이페이지 - 주최한 이벤트 조회 - 워크샵 있을 때 버전
+// async function selectCreatedEvents(connection, userIdx) {
+//   const selectMyPageQuery = `
+//     (SELECT CF.toClubIdx as idx,
+//         if(C.isRegular = 0 AND TN.table_name = 'Clubs', '모임', '정기모임') as type,
+//         C.clubName as name,
+//         CONCAT(date_format(C.when, '%Y.%m.%d '),
+//                case WEEKDAY(C.\`when\`)
+//                    when '0' then '월요일'
+//                    when '1' then '화요일'
+//                    when '2' then '수요일'
+//                    when '3' then '목요일'
+//                    when '4' then '금요일'
+//                    when '5' then '토요일'
+//                    when '6' then '일요일'
+//                    end, ' ',
+//                case date_format(C.when, '%p')
+//                    when 'PM' then '오후'
+//                    when 'AM' then '오전'
+//                    end, ' ',
+//                date_format(C.when, '%l시'),
+//                if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+//                   date_format(C.\`when\`, ' %i분'))) as \`when\`,
+//         C.locationDetail,
+//         DATEDIFF(date(C.\`when\`), now()) as Dday FROM ClubFollowings CF
+// LEFT JOIN (SELECT userIdx, clubIdx, clubName, \`when\`, locationDetail, isRegular, status FROM Clubs) C ON C.clubIdx = CF.toClubIdx
+// INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Clubs%') TN
+//  WHERE C.userIdx = ? AND C.status = 'ACTIVE'
+//  GROUP BY idx)
+// UNION ALL
+// (SELECT CF.toWorkshopIdx as idx,
+//         if(TN.table_name = 'Workshops', '워크샵', '워크샵') as type,
+//         C.workshopName as name,
+//         CONCAT(date_format(C.when, '%Y.%m.%d '),
+//                case WEEKDAY(C.\`when\`)
+//                    when '0' then '월요일'
+//                    when '1' then '화요일'
+//                    when '2' then '수요일'
+//                    when '3' then '목요일'
+//                    when '4' then '금요일'
+//                    when '5' then '토요일'
+//                    when '6' then '일요일'
+//                    end, ' ',
+//                case date_format(C.when, '%p')
+//                    when 'PM' then '오후'
+//                    when 'AM' then '오전'
+//                    end, ' ',
+//                date_format(C.when, '%l시'),
+//                if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+//                   date_format(C.\`when\`, ' %i분'))) as \`when\`,
+//         C.locationDetail,
+//         DATEDIFF(date(C.\`when\`), now()) as Dday FROM WorkshopFollowings CF
+// LEFT JOIN (SELECT userIdx, workshopIdx, workshopName, \`when\`, locationDetail, status FROM Workshops) C ON C.workshopIdx = CF.toWorkshopIdx
+// INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Workshops%') TN
+// WHERE C.userIdx = ? AND C.status = 'ACTIVE'
+// GROUP BY idx)
+// ORDER BY Dday ASC
+// ;`;
+//   const selectMyPageRow = await connection.query(
+//       selectMyPageQuery,
+//       [userIdx, userIdx]
+//   );
+//
+//   return selectMyPageRow;
+// };
+
+
+//마이페이지 - 주최한 이벤트 조회 - 워크샵 없을 때 버전
 async function selectCreatedEvents(connection, userIdx) {
   const selectMyPageQuery = `
-    (SELECT CF.toClubIdx as idx,
-        if(C.isRegular = 0 AND TN.table_name = 'Clubs', '모임', '정기모임') as type,
-        C.clubName as name,
-        CONCAT(date_format(C.when, '%Y.%m.%d '),
-               case WEEKDAY(C.\`when\`)
-                   when '0' then '월요일'
-                   when '1' then '화요일'
-                   when '2' then '수요일'
-                   when '3' then '목요일'
-                   when '4' then '금요일'
-                   when '5' then '토요일'
-                   when '6' then '일요일'
-                   end, ' ',
-               case date_format(C.when, '%p')
-                   when 'PM' then '오후'
-                   when 'AM' then '오전'
-                   end, ' ',
-               date_format(C.when, '%l시'),
-               if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
-                  date_format(C.\`when\`, ' %i분'))) as \`when\`,
-        C.locationDetail,
-        DATEDIFF(date(C.\`when\`), now()) as Dday FROM ClubFollowings CF
-LEFT JOIN (SELECT userIdx, clubIdx, clubName, \`when\`, locationDetail, isRegular, status FROM Clubs) C ON C.clubIdx = CF.toClubIdx
-INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Clubs%') TN
- WHERE C.userIdx = 5 AND C.status = 'ACTIVE'
- GROUP BY idx)
-UNION ALL
-(SELECT CF.toWorkshopIdx as idx,
-        if(TN.table_name = 'Workshops', '워크샵', '워크샵') as type,
-        C.workshopName as name,
-        CONCAT(date_format(C.when, '%Y.%m.%d '),
-               case WEEKDAY(C.\`when\`)
-                   when '0' then '월요일'
-                   when '1' then '화요일'
-                   when '2' then '수요일'
-                   when '3' then '목요일'
-                   when '4' then '금요일'
-                   when '5' then '토요일'
-                   when '6' then '일요일'
-                   end, ' ',
-               case date_format(C.when, '%p')
-                   when 'PM' then '오후'
-                   when 'AM' then '오전'
-                   end, ' ',
-               date_format(C.when, '%l시'),
-               if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
-                  date_format(C.\`when\`, ' %i분'))) as \`when\`,
-        C.locationDetail,
-        DATEDIFF(date(C.\`when\`), now()) as Dday FROM WorkshopFollowings CF
-LEFT JOIN (SELECT userIdx, workshopIdx, workshopName, \`when\`, locationDetail, status FROM Workshops) C ON C.workshopIdx = CF.toWorkshopIdx
-INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Workshops%') TN
-WHERE C.userIdx = 5 AND C.status = 'ACTIVE'
-GROUP BY idx)
-ORDER BY Dday ASC
-;`;
+    SELECT CF.toClubIdx as idx,
+           if(C.isRegular = 0, '모임', '정기모임') as type,
+           C.clubName as name,
+           CONCAT(date_format(C.when, '%Y.%m.%d '),
+                  case WEEKDAY(C.\`when\`)
+                    when '0' then '월요일'
+                    when '1' then '화요일'
+                    when '2' then '수요일'
+                    when '3' then '목요일'
+                    when '4' then '금요일'
+                    when '5' then '토요일'
+                    when '6' then '일요일'
+                    end, ' ',
+                  case date_format(C.when, '%p')
+                    when 'PM' then '오후'
+                    when 'AM' then '오전'
+                    end, ' ',
+                  date_format(C.when, '%l시'),
+                  if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
+                     date_format(C.\`when\`, ' %i분'))) as \`when\`,
+           C.locationDetail,
+           DATEDIFF(date(C.\`when\`), now())           as Dday
+    FROM ClubFollowings CF
+           LEFT JOIN (SELECT userIdx, clubIdx, clubName, \`when\`, locationDetail, isRegular, status FROM Clubs) C
+                     ON C.clubIdx = CF.toClubIdx
+    WHERE C.userIdx = ?
+      AND C.status = 'ACTIVE'
+    GROUP BY idx
+    ORDER BY Dday ASC;
+`;
   const selectMyPageRow = await connection.query(
       selectMyPageQuery,
-      [userIdx, userIdx]
+      userIdx
   );
 
   return selectMyPageRow;
 };
-
 
 // 유저 정보 불러오기
 async function selectUserInfo(connection, userIdx) {
@@ -431,6 +567,7 @@ module.exports = {
   selectUserInfo,
   updateUserStatus,
   updateAccountStatus,
-  selectCreatedEvents
+  selectCreatedEvents,
+  selectCloseClubs
 
 };

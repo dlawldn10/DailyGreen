@@ -49,7 +49,7 @@ exports.retrieveUserProfile = async function (userIdx) {
 //홈화면 - 이벤트 배너
 exports.retrieveEvents = async function (userIdx) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const selectCloseCommunityResult = await userDao.selectCloseEvents(connection);
+  const selectCloseCommunityResult = await userDao.selectCloseClubs(connection);
   connection.release();
 
   return selectCloseCommunityResult;

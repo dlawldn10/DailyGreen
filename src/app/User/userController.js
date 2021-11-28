@@ -72,16 +72,23 @@ exports.postKaKaoUsers = async function (req ,res) {
 
         }else {
             const result = JSON.parse(body);
+            // console.log(result.kakao_account.email);
             const userEmail = {
                 email: result.kakao_account.email
             }
+
             Object.assign(accessTokenInfo, userEmail);
+
+            //처리 속도를 맞추기 위한 if문.
+            if(userEmail.email){
+
+                const signUpResponse = await userService.createUser('kakao', userInfo, accessTokenInfo);
+                return res.send(signUpResponse);
+            }
         }
     });
 
 
-    const signUpResponse = await userService.createUser('kakao', userInfo, accessTokenInfo);
-    return res.send(signUpResponse);
 
 };
 
@@ -277,8 +284,12 @@ exports.kakaoLogin = async function (req, res) {
                 email: result.kakao_account.email
             }
             Object.assign(accessTokenInfo, userEmail);
-            const logInResponse = await userService.postKakaoSignIn(accessTokenInfo);
-            return res.send(logInResponse);
+            //처리 속도를 맞추기 위한 if문.
+            if(userEmail.email){
+                const logInResponse = await userService.postKakaoSignIn(accessTokenInfo);
+                return res.send(logInResponse);
+            }
+
 
         }
 
@@ -291,7 +302,7 @@ exports.kakaoLogin = async function (req, res) {
 exports.appleLogin = async function (req, res) {
 
 
-    let code = req.body.code;
+    let code = req.body.accessToken;
 
     if (!code) {
         return res.send(response(baseResponse.SIGNUP_APPLE_ACCESSTOKEN_EMPTY));

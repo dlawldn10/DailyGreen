@@ -156,7 +156,7 @@ exports.deletePost = async function (userIdx, postIdx) {
 
 async function uploadToFirebaseStorage(connection, resultResponse, reqBody, userIdxFromJWT, postIdx) {
     //사진 업로드
-    const postPhotoUrlList = [];
+    let postPhotoUrlList = [];
     for (let i = 0; i < reqBody.postPhotoList.length; i++) {
 
         const bufferStream = new stream.PassThrough();
@@ -187,7 +187,7 @@ async function uploadToFirebaseStorage(connection, resultResponse, reqBody, user
                         return resultResponse;
                     }
 
-                    postPhotoUrlList.push(url);
+                    postPhotoUrlList = await pushToList(postPhotoUrlList, url);
 
                     if (postPhotoUrlList.length == reqBody.postPhotoList.length) {
                         //타이밍 맞추기 위한 if문.
@@ -207,4 +207,9 @@ async function uploadToFirebaseStorage(connection, resultResponse, reqBody, user
     }
 
     return resultResponse;
+}
+
+async function pushToList(postPhotoUrlList, url){
+    postPhotoUrlList.push(url);
+    return postPhotoUrlList;
 }

@@ -41,10 +41,10 @@ exports.createClub = async function (userIdxFromJWT, clubInfo) {
         if(clubInfo.clubPhotoList.length === 0){
             //기본 이미지 삽입
             const defaultUrl = 'https://firebasestorage.googleapis.com/v0/b/dailygreen-6e49d.appspot.com/o/Clubs%2FClubImages%2Fdummyimg_if_no_img_on_m.jpg?alt=media&token=c2894173-0832-4126-b212-79fb935478b5';
-            const insertClubPhotoUrlRow = await clubDao.insertClubPhotoUrl(connection, clubIdx, userIdxFromJWT, defaultUrl);
+            const insertClubPhotoResult = await clubDao.insertClubPhotoUrl(connection, clubIdx, userIdxFromJWT, defaultUrl);
         }else{
             //사진 게시
-            const insertClubPhotoUrlRow = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx);
+            const insertClubPhotoResult = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx);
         }
 
         if (clubInfo.isRegular == 0) {
@@ -169,7 +169,7 @@ exports.updateClub = async function (userIdxFromJWT, clubInfo) {
 //파이어베이스 업로드
 async function uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx) {
     //사진 업로드
-    const clubPhotoUrlList = [];
+    let clubPhotoUrlList = [];
     for (let i = 0; i < clubInfo.clubPhotoList.length; i++) {
 
         const bufferStream = new stream.PassThrough();
@@ -200,9 +200,10 @@ async function uploadToFirebaseStorage(connection, resultResponse, clubInfo, use
                         return resultResponse;
                     }
 
-                    clubPhotoUrlList.push(url);
+                    clubPhotoUrlList = await pushToList(clubPhotoUrlList, url);
 
-                    if (clubPhotoUrlList.length == clubInfo.clubPhotoList.length) {
+
+                    if (clubPhotoUrlList.length === clubInfo.clubPhotoList.length) {
                         //타이밍 맞추기 위한 if문.
                         delete clubInfo.clubPhotoList;
 
@@ -217,6 +218,12 @@ async function uploadToFirebaseStorage(connection, resultResponse, clubInfo, use
     }
 
     return resultResponse;
+}
+
+
+async function pushToList(postPhotoUrlList, url){
+    postPhotoUrlList.push(url);
+    return postPhotoUrlList;
 }
 
 
