@@ -119,13 +119,13 @@ async function selectLastInsertedPost(connection) {
 
 
 //새 게시물 사진 리스트 올리기
-async function insertPostPhotoUrls(connection, postIdx, userIdx, url) {
+async function insertPostPhotoUrls(connection, postIdx, url) {
     const insertPostQuery = `
-    INSERT INTO PostPhotoUrls(postIdx, userIdx, url)
-    VALUES (?, ?, ?);
+    INSERT INTO PostPhotoUrls(postIdx, url)
+    VALUES (?, ?);
   `;
     const insertPostRow = await connection.query(
-        insertPostQuery, [postIdx, userIdx, url]
+        insertPostQuery, [postIdx, url]
     );
 
     return insertPostRow[0];

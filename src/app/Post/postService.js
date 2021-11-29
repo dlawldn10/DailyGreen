@@ -47,7 +47,7 @@ exports.createPost = async function (reqBody, userIdxFromJWT) {
         // }
 
         //게시물 사진 게시
-        resultResponse = uploadToFirebaseStorage(connection, resultResponse, reqBody, userIdxFromJWT, insertPostResult.insertId);
+        resultResponse = await uploadToFirebaseStorage(connection, resultResponse, reqBody, userIdxFromJWT, insertPostResult.insertId);
 
         connection.commit();
         return resultResponse;
@@ -189,6 +189,10 @@ async function uploadToFirebaseStorage(connection, resultResponse, reqBody, user
 
                     postPhotoUrlList = await pushToList(postPhotoUrlList, url);
 
+                    console.log(postPhotoUrlList.length);
+                    console.log(reqBody.postPhotoList.length);
+
+
                     if (postPhotoUrlList.length == reqBody.postPhotoList.length) {
                         //타이밍 맞추기 위한 if문.
                         delete reqBody.postPhotoList;
@@ -197,7 +201,6 @@ async function uploadToFirebaseStorage(connection, resultResponse, reqBody, user
                         for (let i = 0; i < postPhotoUrlList.length; i++) {
                             const insertClubPhotoUrlRow = await postDao.insertPostPhotoUrls(connection,
                                 postIdx,
-                                userIdxFromJWT,
                                 postPhotoUrlList[i]);
                         }
 
