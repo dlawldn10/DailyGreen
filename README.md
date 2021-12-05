@@ -16,3 +16,7 @@ https://makeus-challenge.notion.site/99c5bfc231dc4ed7949bae37b3f245fd
 https://makeus-challenge.notion.site/50a798a8876e437abf9132934dde36df
 
 
+
+
+## 상세설명 포트폴리오
+https://robust-pecorino-f96.notion.site/BackEnd-7f4ec43836374a17b27aa9f67d9b0639
