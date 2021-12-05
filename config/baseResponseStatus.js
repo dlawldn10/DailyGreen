@@ -100,6 +100,7 @@ module.exports = {
     REPORT_CONTENT_EMPTY: { "isSuccess": false, "code": 2051, "message":"신고 내용을 입력해주세요." },
     REPORT_SORT_EMPTY: { "isSuccess": false, "code": 2052, "message":"종류를 입력해주세요." },
     APPLE_AUTH_ERROR: { "isSuccess": false, "code": 2053, "message":"Apple Auth 코드 에러." },
+    TOOMUCH_PARTICIPANTS_ERROR: { "isSuccess": false, "code": 2054, "message":"정원이 가득찼습니다." },
 
 
     // Response error

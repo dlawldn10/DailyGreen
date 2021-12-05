@@ -14,12 +14,20 @@ const crypto = require("crypto");
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const AppleAuth = require('apple-auth');
-const appleConfig = require('../../../config/apple.json');
-// const auth = new AppleAuth(appleConfig, path.join(__dirname, `../../../secretKey/AuthKey_7DQH2L92P5.p8`));
+// const appleConfig = require('../../../config/apple.json');
+const auth = new AppleAuth({
+    "client_id" : "com.jy.DailyGreen",
+    "team_id": "5KZ5C4UW39",
+    "key_id": "7DQH2L92P5",
+    "redirect_uri": "https://ssac-ivy.shop/app/users/apple",
+    "scope": "email",
+    "response_mode" : "form_post"
+}, path.join(__dirname, `../../../secretKey/AuthKey_7DQH2L92P5.p8`));
 
-
-
-// res.redirect('download?imgName=' + image.originalname);
+const appleSignin = require('apple-signin-auth');
+const fs = require("fs");
+const axios = require("axios");
+const querystring = require("querystring");
 
 //카카오 회원가입
 exports.postKaKaoUsers = async function (req ,res) {
@@ -92,19 +100,11 @@ exports.postKaKaoUsers = async function (req ,res) {
 
 };
 
+// console.log(auth.loginURL());
+// console.log(auth._tokenGenerator.generate());
+
 //애플 회원가입
 exports.postAppleUsers = async function (req ,res) {
-    try {
-    let code = req.body.code;
-
-    if (!code) {
-        return res.send(response(baseResponse.SIGNUP_APPLE_ACCESSTOKEN_EMPTY));
-    }
-    const auth = new AppleAuth(appleConfig, path.join(__dirname, `../../../secretKey/AuthKey_7DQH2L92P5.p8`));
-    const TokenResponse = await auth.accessToken(code);
-    const idToken = jwt.decode(TokenResponse.id_token);
-    // const sub = idToken.sub;
-
 
     const userInfo = {
         password: 'tmpPassword',
@@ -115,31 +115,134 @@ exports.postAppleUsers = async function (req ,res) {
     }
 
     const accessTokenInfo = {
-        email: idToken.email
+        email: req.body.email
     }
-
 
     // 빈 값 체크
     if (!userInfo.nickname)
         return res.send(response(baseResponse.SIGNUP_NICKNAME_EMPTY));
     else if (!userInfo.bio)
         return res.send(response(baseResponse.SIGNUP_BIO_EMPTY));
-    else if (!accessTokenInfo.email)
-        return res.send(response(baseResponse.FAILED_GETIING_APPLE_EMAIL));
     else if (!userInfo.profilePhoto)
         return res.send(response(baseResponse.SIGNUP_PROFILEPHOTO_EMPTY));
+    else if (!accessTokenInfo.email)
+        return res.send(response(baseResponse.SIGNUP_EMAIL_EMPTY));
 
 
 
     const signUpResponse = await userService.createUser('apple', userInfo, accessTokenInfo);
     return res.send(signUpResponse);
+    // let code = auth._tokenGenerator.generate();
+    // let code = req.body.accessToken;
 
-    } catch (ex) {
-        console.error(ex);
-        res.send(baseResponse.APPLE_AUTH_ERROR);
-    }
+    // if (!code) {
+    //     return res.send(response(baseResponse.SIGNUP_APPLE_ACCESSTOKEN_EMPTY));
+    // }
+
+    // const clientSecret = getClientSecret()
+    // const requestBody = {
+    //     grant_type: 'authorization_code',
+    //     code: req.body.code,
+    //     redirect_uri: "https://ssac-ivy.shop/users/apple",
+    //     client_id: "com.jy.DailyGreens",
+    //     client_secret: clientSecret
+    // }
+    //
+    // axios.request({
+    //     method: "POST",
+    //     url: "https://appleid.apple.com/auth/token",
+    //     data: querystring.stringify(requestBody),
+    //     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    // }).then(response => {
+    //     return res.json({
+    //         success: true,
+    //         data: response.data,
+    //         user: getUserId(response.data.id_token)
+    //     })
+    // }).catch(error => {
+    //     return res.status(500).json({
+    //         success: false,
+    //         error: error.response.data
+    //     })
+    // })
+
+
+
+    // const clientSecret = appleSignin.getClientSecret({
+    //     clientID: 'com.jy.DailyGreen', // Apple Client ID
+    //     teamID: '5KZ5C4UW39', // Apple Developer Team ID.
+    //     privateKeyPath: path.join(__dirname, `../../../secretKey/AuthKey_7DQH2L92P5.p8`), // path to private key associated with your client ID. -- Can also be `privateKeyPath` string
+    //     keyIdentifier: '7DQH2L92P5', // identifier of the private key.
+    // });
+    //
+    // const options = {
+    //     clientID: 'com.jy.DailyGreen', // Apple Client ID
+    //     redirectUri: 'https://ssac-ivy.shop/users/apple', // use the same value which you passed to authorisation URL.
+    //     clientSecret: clientSecret
+    // };
+    //
+    //
+    // try {
+    //     const tokenResponse = await appleSignin.getAuthorizationToken(code, options);
+    //     console.log(tokenResponse);
+    //     const { sub: userAppleId } = await appleSignin.verifyIdToken(tokenResponse.id_token, {
+    //         // Optional Options for further verification - Full list can be found here https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
+    //         audience: 'com.jy.DailyGreen', // client id - can also be an array
+    //         nonce: 'NONCE', // nonce // Check this note if coming from React Native AS RN automatically SHA256-hashes the nonce https://github.com/invertase/react-native-apple-authentication#nonce
+    //         // If you want to handle expiration on your own, or if you want the expired tokens decoded
+    //         ignoreExpiration: true, // default is false
+    //     });
+    //
+    // } catch (err) {
+    //     console.error(err);
+    //     res.send(baseResponse.APPLE_AUTH_ERROR);
+    // }
+
+
+    // try {
+    //     const TokenResponse = await auth.accessToken(req.body.code);
+    //     const idToken = jwt.decode(TokenResponse.id_token);
+    //
+    //     const accessTokenInfo = {
+    //         email: idToken.email
+    //     }
+    //
+    //     const userInfo = {
+    //         password: 'tmpPassword',
+    //         phoneNum: '00000000000',
+    //         profilePhoto: req.file,
+    //         nickname: req.body.nickname,
+    //         bio: req.body.bio
+    //     }
+    //
+    //
+    //     // 빈 값 체크
+    //     if (!userInfo.nickname)
+    //         return res.send(response(baseResponse.SIGNUP_NICKNAME_EMPTY));
+    //     else if (!userInfo.bio)
+    //         return res.send(response(baseResponse.SIGNUP_BIO_EMPTY));
+    //     else if (!accessTokenInfo.email)
+    //         return res.send(response(baseResponse.FAILED_GETIING_APPLE_EMAIL));
+    //     else if (!userInfo.profilePhoto)
+    //         return res.send(response(baseResponse.SIGNUP_PROFILEPHOTO_EMPTY));
+    //
+    //
+    //
+    //     const signUpResponse = await userService.createUser('apple', userInfo, accessTokenInfo);
+    //     return res.send(signUpResponse);
+    //
+    // } catch (ex) {
+    //     console.error(ex);
+    //     res.send(baseResponse.APPLE_AUTH_ERROR);
+    // }
+
+
+
+
 
 };
+
+
 
 //닉네임 중복 체크
 exports.postNicknameCheck = async function (req, res) {
@@ -308,19 +411,23 @@ exports.appleLogin = async function (req, res) {
         return res.send(response(baseResponse.SIGNUP_APPLE_ACCESSTOKEN_EMPTY));
     }
 
-    const auth = new AppleAuth(appleConfig, path.join(__dirname, `../../../secretKey/AuthKey_7DQH2L92P5.p8`));
-    const TokenResponse = await auth.accessToken(code);
-    const idToken = jwt.decode(TokenResponse.id_token);
+    try{
+        const TokenResponse = await auth.accessToken(code);
+        const idToken = jwt.decode(TokenResponse.id_token);
 
-    const accessTokenInfo = {
-        email: idToken.email,
-        accessToken : code
+        const accessTokenInfo = {
+            email: idToken.email,
+            accessToken : code
+        }
+
+        const signUpResponse = await userService.postAppleSignIn(accessTokenInfo);
+        return res.send(signUpResponse);
+
+    }catch (ex) {
+         console.error(ex);
+         res.send(baseResponse.APPLE_AUTH_ERROR);
     }
 
-
-
-    const signUpResponse = await userService.postAppleSignIn(accessTokenInfo);
-    return res.send(signUpResponse);
 
 
 };

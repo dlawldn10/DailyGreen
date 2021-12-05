@@ -163,3 +163,40 @@ exports.getCreatedPostList = async function (req, res){
     return res.send(response(baseResponse.SUCCESS, retrievePostsResult));
 
 }
+
+
+
+//검색 피드 조회
+exports.getSearchedPostList = async function (req, res){
+
+    const keyword = req.query.keyword;
+    let page = req.query.page;
+    const communityIdx = req.params.communityIdx;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    const limit = 15;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!communityIdx)
+        return res.send(errResponse(baseResponse.COMMUNITYIDX_EMPTY));
+    else if (!keyword)
+        return res.send(errResponse(baseResponse.KEYWORD_EMPTY));
+
+    if(limit-page < 0){
+
+        page = 0;
+
+    }else if(page == 0 || !page){
+
+        return res.send(errResponse(baseResponse.PAGECOUNT_WRONG));
+    }else{
+
+        page = (page-1)*limit
+
+    }
+
+    const postsFromFollowingUsers = await postProvider.retrieveSearchedPostList(userIdxFromJWT, page, limit, communityIdx, keyword);
+    return res.send(response(baseResponse.SUCCESS, postsFromFollowingUsers));
+
+}

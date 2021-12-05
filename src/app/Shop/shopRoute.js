@@ -21,5 +21,8 @@ module.exports = function(app) {
     //관심상점 추가
     app.post('/app/shops/likes', jwtMiddleware, upload.none(), shop.postShopLike);
 
+    //상점 검색
+    app.get('/app/searches/shops', jwtMiddleware, shop.getSearchedShopList);
+
 
 }

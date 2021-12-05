@@ -57,3 +57,18 @@ exports.retrieveShop = async function (userIdx, shopIdx) {
 
 };
 
+
+exports.retrieveSearchedShopList = async function (userIdx, page, limit, keyword) {
+
+    console.log(keyword);
+    const connection = await pool.getConnection(async (conn) => conn);
+    connection.beginTransaction();
+
+    const shopListResult = await shopDao.selectSearchedShopList(connection, limit, page, keyword, userIdx);
+
+
+    connection.release();
+
+    return shopListResult;
+
+};

@@ -96,6 +96,7 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
 
 
 
+
 //카카오 로그인
 exports.postKakaoSignIn = async function (accessTokenInfo) {
     try {
@@ -146,13 +147,18 @@ exports.postKakaoSignIn = async function (accessTokenInfo) {
 
 //애플 로그인
 exports.postAppleSignIn = async function (accessTokenInfo) {
+
     try {
         // 계정 존재 및 상태 확인
         const accountInfoRowParams = ['apple', accessTokenInfo.email];
         const accountInfoRows = await userProvider.accountCheck(accountInfoRowParams);
 
         if(accountInfoRows[0] === undefined){
-            return errResponse(baseResponse.ACCOUNT_NOT_EXIST);
+            return {
+                isSuccess: false,
+                code: 3007,
+                message: "존재하지 않는 계정입니다. 회원가입을 진행해 주세요.",
+                email: "testEmail@email.com" };
         }
         else if (accountInfoRows[0].status === "INACTIVE") {
             return errResponse(baseResponse.SIGNIN_INACTIVE_ACCOUNT);

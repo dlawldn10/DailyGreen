@@ -100,3 +100,52 @@ exports.retrieveCreatedPostList = async function (userIdxFromJWT, userIdx, page,
 
 };
 
+
+//게시물 검색
+exports.retrieveSearchedPostList = async function (userIdx, page, limit, communityIdx, keyword) {
+
+    console.log(keyword);
+    const connection = await pool.getConnection(async (conn) => conn);
+    connection.beginTransaction();
+
+    const postListResult = await postDao.selectSearchedPostList(connection, communityIdx, limit, page, keyword);
+
+    let postList = [];
+    for(let i = 0; i<postListResult.length; i++){
+        const postIdx = postListResult[i].postIdx;
+        // console.log(postIdx);
+        const ifFollowingUserResult = await postDao.selectIfFollowing(connection, userIdx, postListResult[i].userIdx);
+        const ifPostLikeResult = await postDao.selectIfPostLiked(connection, userIdx, postIdx);
+        const postTotalLikeResult = await postDao.selectAllPostLikes(connection, postIdx);
+        const postTotalCommentResult = await postDao.selectAllCommentsCount(connection, postIdx);
+
+        const photoUrlListResult = await postDao.selectPostPhotoUrls(connection, postIdx);
+
+
+        const postPhotoUrlListObj = {
+            postIdx : postIdx,
+            urlList: photoUrlListResult
+        }
+
+
+        const Result ={
+            postInfoObj: Object.assign({},
+                postListResult[i],
+                ifFollowingUserResult[0],
+                ifPostLikeResult[0],
+                postTotalLikeResult[0],
+                postTotalCommentResult[0]
+            ),
+            postPhotoUrlListObj: postPhotoUrlListObj
+
+        }
+
+        postList.push(Result);
+    }
+
+    connection.commit();
+    connection.release();
+
+    return postList;
+
+};

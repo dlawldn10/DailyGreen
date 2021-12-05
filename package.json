@@ -18,6 +18,8 @@
   "dependencies": {
     "@google-cloud/storage": "^5.15.3",
     "apple-auth": "^1.0.7",
+    "apple-signin-auth": "^1.5.1",
+    "axios": "^0.24.0",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
     "cors": "^2.8.5",

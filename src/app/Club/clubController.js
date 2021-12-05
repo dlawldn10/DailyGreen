@@ -25,6 +25,13 @@ exports.postClub = async function (req, res) {
         when : req.body.when
     }
 
+    if(typeof(clubInfo.tagList) === "string") {
+        let tmpList = [];
+        tmpList.push(clubInfo.tagList);
+        delete clubInfo.tagList;
+        clubInfo.tagList = tmpList;
+    }
+
 
     // 빈 값 체크
     if (!userIdxFromJWT)

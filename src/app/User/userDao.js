@@ -89,6 +89,24 @@ async function insertAccountInfo(connection, insertAccountInfoParams) {
 }
 
 
+//새 애플 유저가 로그인 했을 때 이메일 먼저 등록
+async function insertNewUserEmail(connection, sort, email) {
+  const insertUserInfoQuery = `
+    INSERT INTO Accounts(
+      sort,
+      email
+    )
+    VALUES (?, ?);
+  `;
+  const insertUserInfoRow = await connection.query(
+      insertUserInfoQuery,
+      [sort, email]
+  );
+
+  return insertUserInfoRow;
+}
+
+
 
 //팔로우 추가
 async function insertFollows(connection, from, to) {
@@ -313,9 +331,9 @@ async function selectMyPage(connection, userIdx) {
 async function selectMyPageCnts(connection, userIdx) {
   const selectMyPageQuery = `
     SELECT
-        (SELECT COUNT(*) FROM ClubFollowings WHERE fromUserIdx = ${userIdx})as participationCnt,
-        (SELECT COUNT(*) FROM Clubs WHERE userIdx = ${userIdx}) as createdCWCnt,
-        (SELECT COUNT(*) FROM Posts WHERE userIdx = ${userIdx}) as createdPostCnt;`;
+        (SELECT COUNT(*) FROM ClubFollowings WHERE fromUserIdx = ${userIdx} AND status = 'ACTIVE')as participationCnt,
+        (SELECT COUNT(*) FROM Clubs WHERE userIdx = ${userIdx} AND status = 'ACTIVE') as createdCWCnt,
+        (SELECT COUNT(*) FROM Posts WHERE userIdx = ${userIdx} AND status = 'ACTIVE') as createdPostCnt;`;
 
   const selectMyPageRow = await connection.query(selectMyPageQuery);
 
@@ -415,7 +433,7 @@ async function selectParticipatingEvents(connection, userIdx) {
     FROM ClubFollowings CF
            LEFT JOIN (SELECT clubIdx, clubName, \`when\`, locationDetail, isRegular, status FROM Clubs) C
                      ON C.clubIdx = CF.toClubIdx
-    WHERE fromUserIdx = ? AND C.status = 'ACTIVE'
+    WHERE fromUserIdx = ? AND CF.status = 'ACTIVE'
     ORDER BY Dday ASC;
     `;
   const selectMyPageRow = await connection.query(
@@ -497,9 +515,9 @@ async function selectParticipatingEvents(connection, userIdx) {
 //마이페이지 - 주최한 이벤트 조회 - 워크샵 없을 때 버전
 async function selectCreatedEvents(connection, userIdx) {
   const selectMyPageQuery = `
-    SELECT CF.toClubIdx as idx,
-           if(C.isRegular = 0, '모임', '정기모임') as type,
-           C.clubName as name,
+    SELECT C.clubIdx                                   as idx,
+           if(C.isRegular = 0, '모임', '정기모임')           as type,
+           C.clubName                                  as name,
            CONCAT(date_format(C.when, '%Y.%m.%d '),
                   case WEEKDAY(C.\`when\`)
                     when '0' then '월요일'
@@ -519,9 +537,7 @@ async function selectCreatedEvents(connection, userIdx) {
                      date_format(C.\`when\`, ' %i분'))) as \`when\`,
            C.locationDetail,
            DATEDIFF(date(C.\`when\`), now())           as Dday
-    FROM ClubFollowings CF
-           LEFT JOIN (SELECT userIdx, clubIdx, clubName, \`when\`, locationDetail, isRegular, status FROM Clubs) C
-                     ON C.clubIdx = CF.toClubIdx
+    FROM Clubs C
     WHERE C.userIdx = ?
       AND C.status = 'ACTIVE'
     GROUP BY idx
@@ -568,6 +584,7 @@ module.exports = {
   updateUserStatus,
   updateAccountStatus,
   selectCreatedEvents,
-  selectCloseClubs
+  selectCloseClubs,
+  insertNewUserEmail
 
 };

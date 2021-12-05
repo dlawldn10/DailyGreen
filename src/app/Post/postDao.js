@@ -326,6 +326,29 @@ async function selectCreatedPostPhotoUrls(connection, postIdx) {
 };
 
 
+//게시물 검색
+async function selectSearchedPostList(connection, communityIdx, limit, page, keyword, userIdx) {
+
+    const selectClubsQuery = `
+        SELECT A.userIdx, A.nickname, A.profilePhotoUrl,
+               P.postIdx, P.caption
+        FROM Posts P
+                 LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl FROM Users) A ON A.userIdx = P.userIdx
+        WHERE P.status = 'ACTIVE' AND P.communityIdx = ? AND P.caption LIKE '%${keyword}%'
+          AND P.userIdx not in (SELECT toUserIdx FROM BlockUsers WHERE fromUserIdx = ? )
+          AND P.userIdx not in (SELECT fromUserIdx FROM BlockUsers WHERE toUserIdx = ? )
+        ORDER BY P.updatedAt DESC LIMIT ? OFFSET ?;
+    `;
+
+    const selectClubListRow = await connection.query(
+        selectClubsQuery,
+        [communityIdx, userIdx, userIdx, limit, page]
+    );
+
+    return selectClubListRow[0];
+
+}
+
 
 
 module.exports = {
@@ -348,6 +371,7 @@ module.exports = {
     insertLikeInfo,
     updateLikeInfo,
     selectCreatedPostList,
-    selectCreatedPostPhotoUrls
+    selectCreatedPostPhotoUrls,
+    selectSearchedPostList
 
 };

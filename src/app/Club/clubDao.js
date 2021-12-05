@@ -148,7 +148,7 @@ async function selectThreeFollowingUsersProfilePhotos(connection, clubIdx) {
     const selectProfilePhotoUrlQuery = `
         SELECT U.profilePhotoUrl FROM ClubFollowings CF
         LEFT JOIN (SELECT userIdx, profilePhotoUrl FROM Users) U ON userIdx = CF.fromUserIdx
-        WHERE CF.toClubIdx = ?
+        WHERE CF.toClubIdx = ? AND CF.status = 'ACTIVE'
         ORDER BY CF.updatedAt DESC LIMIT 3;
     `;
 
@@ -184,7 +184,7 @@ async function selectClubTags(connection, clubIdx) {
 async function selectClubFollowers(connection, clubIdx) {
 
     const selectClubFollowersQuery = `
-        SELECT COUNT(*) as nowFollowing FROM ClubFollowings CF WHERE CF.toClubIdx = ?;
+        SELECT COUNT(*) as nowFollowing FROM ClubFollowings CF WHERE CF.toClubIdx = ? AND CF.status = 'ACTIVE';
     `;
 
     const selectClubFollowersRow = await connection.query(
@@ -227,7 +227,8 @@ async function selectClubByClubIdx(connection, clubIdx){
                          date_format(C.\`when\`, ' %i분')))     as \`when\`,
                CONCAT('D-', DATEDIFF(date(C.\`when\`), now())) as Dday,
                CEF.feeType,
-               CONCAT(CEF.fee, '원') as fee
+               CONCAT(CEF.fee, '원') as fee,
+               C.kakaoChatLink
         FROM Clubs C
                  LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U on C.userIdx = U.userIdx
                  LEFT JOIN (SELECT clubIdx, feeType, fee FROM ClubEntranceFees) CEF on C.clubIdx = CEF.clubIdx
@@ -251,7 +252,7 @@ async function selectFollowingUsersProfile(connection, clubIdx) {
     const selectUserProfileQuery = `
         SELECT U.profilePhotoUrl, U.nickname FROM ClubFollowings CF
         LEFT JOIN (SELECT userIdx, profilePhotoUrl, nickname FROM Users) U ON userIdx = CF.fromUserIdx
-        WHERE CF.toClubIdx = ?
+        WHERE CF.toClubIdx = ? AND CF.status = 'ACTIVE'
         ORDER BY CF.updatedAt DESC;
     `;
 
@@ -375,12 +376,30 @@ async function updateOneHashTag(connection, newStatus, tagName){
     return updateHashTagStatusRow[0];
 }
 
+//참가 정원 확인
+async function selectIfFull(connection, clubIdx) {
+    const selectTagQuery = `
+        SELECT PeopleCnt, maxPeopleNum, if(PeopleCnt >= maxPeopleNum, 0, 1) as available FROM Clubs C
+        LEFT JOIN(SELECT COUNT(*) as PeopleCnt, toClubIdx, status FROM ClubFollowings WHERE toClubIdx = ? AND status = 'ACTIVE') CF ON CF.toClubIdx = C.clubIdx
+        WHERE C.clubIdx = ?;
+    `;
+
+    const selectTagRow = await connection.query(
+        selectTagQuery,
+        [clubIdx, clubIdx]
+    );
+
+    return selectTagRow[0];
+
+
+}
+
 
 
 //참가를 한 적이 있는지 알아보기
 async function selectIfClubFollowExist(connection, userIdx, clubIdx) {
     const selectTagQuery = `
-        SELECT status FROM ClubFollowings WHERE fromUserIdx =? AND toClubIdx =?;
+        SELECT IFNULL(status, 'NONE') as status FROM ClubFollowings WHERE fromUserIdx =? AND toClubIdx =?;
     `;
 
     const selectTagRow = await connection.query(
@@ -494,6 +513,22 @@ async function selectClubType(connection, clubIdx) {
     return insertStoryTagRow[0];
 }
 
+//참가자 수 확인
+async function selectParticipateCountStaus(connection, clubIdx) {
+
+    const insertStoryTagQuery = `
+        SELECT isRegular FROM Clubs WHERE clubIdx = ?;
+    `;
+
+
+    const insertStoryTagRow = await connection.query(
+        insertStoryTagQuery,
+        clubIdx
+    );
+
+    return insertStoryTagRow[0];
+}
+
 //모임 검색
 async function selectSearchedClubList(connection, communityIdx, limit, page, keyword) {
 
@@ -575,6 +610,8 @@ module.exports = {
     deleteClubPhotoUrls,
     deleteClubTags,
     selectClubType,
-    selectSearchedClubList
+    selectSearchedClubList,
+    selectParticipateCountStaus,
+    selectIfFull
 
 };

@@ -2,6 +2,7 @@ const shopProvider = require("../../app/Shop/shopProvider");
 const shopService = require("../../app/Shop/shopService");
 const baseResponse = require("../../../config/baseResponseStatus");
 const {response, errResponse} = require("../../../config/response");
+const clubProvider = require("../../app/Club/clubProvider");
 
 //상점 전체 조회
 exports.getShopList = async function (req, res){
@@ -98,5 +99,38 @@ exports.postShopLike = async function (req, res){
 
     const createShopLikeResult = await shopService.createShopLike(userIdxFromJWT, shopIdx);
     return res.send(createShopLikeResult);
+
+}
+
+
+//검색 상점 조회
+exports.getSearchedShopList = async function (req, res){
+
+    const keyword = req.query.keyword;
+    let page = req.query.page;
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    const limit = 15;
+
+    if (!userIdxFromJWT)
+        return res.send(errResponse(baseResponse.TOKEN_EMPTY));
+    else if (!keyword)
+        return res.send(errResponse(baseResponse.KEYWORD_EMPTY));
+
+    if(limit-page < 0){
+
+        page = 0;
+
+    }else if(page == 0 || !page){
+
+        return res.send(errResponse(baseResponse.PAGECOUNT_WRONG));
+    }else{
+
+        page = (page-1)*limit
+
+    }
+
+    const searchedShopListResult = await shopProvider.retrieveSearchedShopList(userIdxFromJWT, page, limit, keyword);
+    return res.send(response(baseResponse.SUCCESS, searchedShopListResult));
 
 }

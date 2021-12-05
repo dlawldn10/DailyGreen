@@ -139,6 +139,30 @@ async function updateLikeInfo(connection, userIdx, shopIdx, status) {
     return updateLikeRow[0];
 }
 
+//상점 검색
+async function selectSearchedShopList(connection, limit, page, keyword, userIdx) {
+
+    const selectClubsQuery = `
+        SELECT S.shopIdx, S.shopName,
+               S.locationDetail, CPU.url,
+               (SELECT COUNT(*) as isShopLiked FROM ShopLikes WHERE status = 'ACTIVE' AND userIdx = ? AND shopIdx = S.shopIdx) as isShopLiked
+        FROM Shops S
+                 LEFT JOIN (SELECT shopIdx, url FROM ShopPhotoUrls GROUP BY shopIdx) CPU on S.shopIdx = CPU.shopIdx
+        WHERE S.status = 'ACTIVE' AND S.shopName LIKE '%${keyword}%'
+        ORDER BY S.updatedAt DESC LIMIT ?
+        OFFSET ?;
+    `;
+
+    const selectClubListRow = await connection.query(
+        selectClubsQuery,
+        [userIdx, limit, page]
+    );
+
+    return selectClubListRow[0];
+
+}
+
+
 
 
 module.exports = {
@@ -148,6 +172,7 @@ module.exports = {
     selectShopPhotoUrls,
     selectIfLikeExist,
     insertLikeInfo,
-    updateLikeInfo
+    updateLikeInfo,
+    selectSearchedShopList
 
 }

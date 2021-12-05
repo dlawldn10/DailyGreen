@@ -29,5 +29,8 @@ module.exports = function(app) {
     // 마이페이지 - 특정 인물이 쓴 게시물 태그별로 보기
     app.get('/app/users/:userIdx/posts', jwtMiddleware, post.getCreatedPostList);
 
+    // 게시글 검색
+    app.get('/app/communities/:communityIdx/posts/searches', jwtMiddleware, post.getSearchedPostList);
+
 
 }
