@@ -399,7 +399,7 @@ async function selectIfFull(connection, clubIdx) {
 //참가를 한 적이 있는지 알아보기
 async function selectIfClubFollowExist(connection, userIdx, clubIdx) {
     const selectTagQuery = `
-        SELECT IFNULL(status, 'NONE') as status FROM ClubFollowings WHERE fromUserIdx =? AND toClubIdx =?;
+        SELECT status FROM ClubFollowings WHERE fromUserIdx =? AND toClubIdx =?;
     `;
 
     const selectTagRow = await connection.query(
