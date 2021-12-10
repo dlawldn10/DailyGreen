@@ -49,8 +49,10 @@ exports.retrieveUserProfile = async function (userIdx) {
 //홈화면 - 이벤트 배너
 exports.retrieveEvents = async function (userIdx) {
   const connection = await pool.getConnection(async (conn) => conn);
+  await connection.beginTransaction();
   const selectCloseCommunityResult = await userDao.selectCloseClubs(connection);
-  connection.release();
+  await connection.commit();
+  await connection.release();
 
   return selectCloseCommunityResult;
 };

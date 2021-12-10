@@ -6,7 +6,7 @@ async function insertClubInfo(connection, insertClubInfoParams) {
                           locationIdx, locationDetail, kakaoChatLink,
                           isRegular)
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        `;
+    `;
     const selectProfilePhotoRow = await connection.query(
         selectProfilePhotoQuery,
         insertClubInfoParams
@@ -20,7 +20,7 @@ async function insertClubPhotoUrl(connection, clubIdx, userIdx, url) {
     const selectProfilePhotoQuery = `
         INSERT INTO ClubPhotoUrls(clubIdx, userIdx, url)
         VALUES(?, ?, ?);
-        `;
+    `;
     const selectProfilePhotoRow = await connection.query(
         selectProfilePhotoQuery,
         [clubIdx, userIdx, url]
@@ -34,7 +34,7 @@ async function insertClubPhotoUrl(connection, clubIdx, userIdx, url) {
 async function insertHashTag(connection, tagName) {
     const insertHashTagQuery = `
         INSERT INTO HashTags(tagName) VALUES (?);
-        `;
+    `;
     const insertHashTagRow = await connection.query(
         insertHashTagQuery,
         tagName
@@ -120,11 +120,11 @@ async function selectClubList(connection, communityIdx, userIdx, limit, page) {
                       if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
                          date_format(C.\`when\`, ' %i분')))     as \`when\`,
                CONCAT('D-', DATEDIFF(date(C.\`when\`), now())) as Dday,
-       CPU.url as clubPhoto
+               CPU.url as clubPhoto
         FROM Clubs C
-            LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U
-        on C.userIdx = U.userIdx
-            LEFT JOIN (SELECT clubIdx, url FROM ClubPhotoUrls GROUP BY clubIdx) CPU on C.clubIdx = CPU.clubIdx
+                 LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U
+                           on C.userIdx = U.userIdx
+                 LEFT JOIN (SELECT clubIdx, url FROM ClubPhotoUrls GROUP BY clubIdx) CPU on C.clubIdx = CPU.clubIdx
         WHERE C.status = 'ACTIVE' AND U.status = 'ACTIVE' AND C.communityIdx = ?
           AND C.userIdx not in (SELECT toUserIdx FROM BlockUsers WHERE fromUserIdx = ? )
           AND C.userIdx not in (SELECT fromUserIdx FROM BlockUsers WHERE toUserIdx = ? )
@@ -147,7 +147,7 @@ async function selectThreeFollowingUsersProfilePhotos(connection, clubIdx) {
 
     const selectProfilePhotoUrlQuery = `
         SELECT U.profilePhotoUrl FROM ClubFollowings CF
-        LEFT JOIN (SELECT userIdx, profilePhotoUrl FROM Users) U ON userIdx = CF.fromUserIdx
+                                          LEFT JOIN (SELECT userIdx, profilePhotoUrl FROM Users) U ON userIdx = CF.fromUserIdx
         WHERE CF.toClubIdx = ? AND CF.status = 'ACTIVE'
         ORDER BY CF.updatedAt DESC LIMIT 3;
     `;
@@ -167,7 +167,7 @@ async function selectClubTags(connection, clubIdx) {
     const selectHashTagsQuery = `
         SELECT HT.tagName
         FROM ClubHashTags CHT
-        LEFT JOIN (SELECT tagIdx, tagName, status FROM HashTags) HT ON CHT.tagIdx = HT.tagIdx
+                 LEFT JOIN (SELECT tagIdx, tagName, status FROM HashTags) HT ON CHT.tagIdx = HT.tagIdx
         WHERE CHT.clubIdx = ? AND CHT.status = 'ACTIVE' AND HT.status = 'ACTIVE';
     `;
 
@@ -226,9 +226,9 @@ async function selectClubByClubIdx(connection, clubIdx){
                       if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
                          date_format(C.\`when\`, ' %i분')))     as \`when\`,
                CONCAT('D-', DATEDIFF(date(C.\`when\`), now())) as Dday,
+               C.kakaoChatLink,
                CEF.feeType,
-               CONCAT(CEF.fee, '원') as fee,
-               C.kakaoChatLink
+               CONCAT(CEF.fee, '원') as fee
         FROM Clubs C
                  LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl, status FROM Users) U on C.userIdx = U.userIdx
                  LEFT JOIN (SELECT clubIdx, feeType, fee FROM ClubEntranceFees) CEF on C.clubIdx = CEF.clubIdx
@@ -251,7 +251,7 @@ async function selectFollowingUsersProfile(connection, clubIdx) {
 
     const selectUserProfileQuery = `
         SELECT U.profilePhotoUrl, U.nickname FROM ClubFollowings CF
-        LEFT JOIN (SELECT userIdx, profilePhotoUrl, nickname FROM Users) U ON userIdx = CF.fromUserIdx
+                                                      LEFT JOIN (SELECT userIdx, profilePhotoUrl, nickname FROM Users) U ON userIdx = CF.fromUserIdx
         WHERE CF.toClubIdx = ? AND CF.status = 'ACTIVE'
         ORDER BY CF.updatedAt DESC;
     `;
@@ -376,24 +376,6 @@ async function updateOneHashTag(connection, newStatus, tagName){
     return updateHashTagStatusRow[0];
 }
 
-//참가 정원 확인
-async function selectIfFull(connection, clubIdx) {
-    const selectTagQuery = `
-        SELECT PeopleCnt, maxPeopleNum, if(PeopleCnt >= maxPeopleNum, 0, 1) as available FROM Clubs C
-        LEFT JOIN(SELECT COUNT(*) as PeopleCnt, toClubIdx, status FROM ClubFollowings WHERE toClubIdx = ? AND status = 'ACTIVE') CF ON CF.toClubIdx = C.clubIdx
-        WHERE C.clubIdx = ?;
-    `;
-
-    const selectTagRow = await connection.query(
-        selectTagQuery,
-        [clubIdx, clubIdx]
-    );
-
-    return selectTagRow[0];
-
-
-}
-
 
 
 //참가를 한 적이 있는지 알아보기
@@ -513,22 +495,6 @@ async function selectClubType(connection, clubIdx) {
     return insertStoryTagRow[0];
 }
 
-//참가자 수 확인
-async function selectParticipateCountStaus(connection, clubIdx) {
-
-    const insertStoryTagQuery = `
-        SELECT isRegular FROM Clubs WHERE clubIdx = ?;
-    `;
-
-
-    const insertStoryTagRow = await connection.query(
-        insertStoryTagQuery,
-        clubIdx
-    );
-
-    return insertStoryTagRow[0];
-}
-
 //모임 검색
 async function selectSearchedClubList(connection, communityIdx, limit, page, keyword) {
 
@@ -580,6 +546,24 @@ async function selectSearchedClubList(connection, communityIdx, limit, page, key
 
 }
 
+//참가 정원 확인
+async function selectIfFull(connection, clubIdx) {
+    const selectTagQuery = `
+        SELECT PeopleCnt, maxPeopleNum, if(PeopleCnt >= maxPeopleNum, 0, 1) as available FROM Clubs C
+                                                                                                  LEFT JOIN(SELECT COUNT(*) as PeopleCnt, toClubIdx, status FROM ClubFollowings WHERE toClubIdx = ? AND status = 'ACTIVE') CF ON CF.toClubIdx = C.clubIdx
+        WHERE C.clubIdx = ?;
+    `;
+
+    const selectTagRow = await connection.query(
+        selectTagQuery,
+        [clubIdx, clubIdx]
+    );
+
+    return selectTagRow[0];
+
+
+}
+
 
 
 module.exports = {
@@ -611,7 +595,6 @@ module.exports = {
     deleteClubTags,
     selectClubType,
     selectSearchedClubList,
-    selectParticipateCountStaus,
     selectIfFull
 
 };

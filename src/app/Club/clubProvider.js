@@ -19,7 +19,7 @@ exports.retrieveClubList = async function (userIdx, page, limit, communityIdx) {
 
         const nowFollowingCountResult = await clubDao.selectClubFollowers(connection, clubIdx);
         let profilePhotoUrlListObj = {}
-        if(nowFollowingCountResult[0].nowFollowing == 0){
+        if(nowFollowingCountResult[0].nowFollowing === 0){
             profilePhotoUrlListObj = {}
         }else{
             const photoUrlListResult = await clubDao.selectThreeFollowingUsersProfilePhotos(connection, clubIdx);
@@ -77,15 +77,17 @@ exports.retrieveClub = async function (userIdx, clubIdx) {
 
     //참가자들의 프사와 닉네임
     let participantListObj = {};
-    if(nowFollowingCountResult[0].nowFollowing == 0){
-        //참가자 없을 때
-        participantListObj = {};
-    }else{
-        //참가자 있을 때
-        const profileListResult = await clubDao.selectFollowingUsersProfile(connection, clubIdx);
-        participantListObj = {
-            clubIdx : clubIdx,
-            participants: profileListResult
+    if(nowFollowingCountResult != undefined) {
+        if (nowFollowingCountResult[0].nowFollowing == 0) {
+            //참가자 없을 때
+            participantListObj = {};
+        } else {
+            //참가자 있을 때
+            const profileListResult = await clubDao.selectFollowingUsersProfile(connection, clubIdx);
+            participantListObj = {
+                clubIdx: clubIdx,
+                participants: profileListResult
+            }
         }
     }
 

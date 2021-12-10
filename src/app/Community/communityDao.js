@@ -23,16 +23,16 @@ async function selectCommunityByCommunityIdx(connection, communityIdx){
 
 async function selectIfCommunityFollowing(connection, userIdxFromJWT, communityIdx){
     const selectCommunityFollowQuery = `
-    SELECT status FROM CommunityFollowings WHERE toCommunityIdx = ? AND fromUserIdx = ?;
-  `;
+        SELECT status FROM CommunityFollowings WHERE toCommunityIdx = ? AND fromUserIdx = ?;
+    `;
     const [selectCommunityRow] = await connection.query(selectCommunityFollowQuery, [communityIdx, userIdxFromJWT]);
     return selectCommunityRow[0];
 }
 
 async function updateCommunityFollow(connection, userIdxFromJWT, communityIdx, newStatus){
     const updateCommunityFollowQuery = `
-    UPDATE CommunityFollowings SET status = ? WHERE fromUserIdx = ? AND toCommunityIdx = ?;
-  `;
+        UPDATE CommunityFollowings SET status = ? WHERE fromUserIdx = ? AND toCommunityIdx = ?;
+    `;
     const [selectCommunityRow] = await connection.query(updateCommunityFollowQuery,
         [newStatus, userIdxFromJWT, communityIdx]
     );

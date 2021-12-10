@@ -34,7 +34,7 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
         await connection.beginTransaction();
         // 계정 존재 및 상태 확인
         const accountInfoRowParams = [sort, accessTokenInfo.email];
-        const accountInfoRows = await userProvider.accountCheck(accountInfoRowParams);
+        let accountInfoRows = await userProvider.accountCheck(accountInfoRowParams);
 
         if(accountInfoRows[0] === undefined) {
 
@@ -63,13 +63,39 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
             //프사 업로드
             const uploadProfilePhotoResult = await uploadToFirebaseStorage(connection, userInfo, insertUserResult[0].insertId);
 
+            console.log({
+                userIdx: insertUserResult[0].insertId,
+                accountIdx: insertAccountResult[0].insertId
+            });
+
+            //유저 정보 가져오기
+            const userInfoRows = await userDao.selectSimpleUserProfile(connection, insertUserResult[0].insertId);
+
+            //토큰 생성 Service
+            let token = await jwt.sign(
+                {
+                    userIdx: insertUserResult[0].insertId,
+                    accountIdx: insertAccountResult[0].insertId
+                }, // 토큰의 내용(payload)
+                secret_config.jwtsecret, // 비밀키
+                {
+                    expiresIn: "365d",
+                    subject: "userInfo",
+                } // 유효 기간 365일
+            );
+
             await connection.commit();
 
 
             return response(baseResponse.SUCCESS, {
                 'userIdx': insertUserResult[0].insertId,
-                'accountIdx': insertAccountResult[0].insertId
+                'accountIdx': insertAccountResult[0].insertId,
+                'nickname': userInfoRows[0].nickname,
+                'profilePhotoUrl': userInfoRows[0].profilePhotoUrl,
+                'jwt': token
             });
+
+
 
         }else if (accountInfoRows[0].status === "INACTIVE") {
             return errResponse(baseResponse.SIGNIN_INACTIVE_ACCOUNT);
@@ -93,6 +119,7 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
         connection.release();
     }
 };
+
 
 
 

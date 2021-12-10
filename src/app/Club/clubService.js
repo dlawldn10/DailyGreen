@@ -237,13 +237,25 @@ exports.createClubFollowing = async function (userIdx, clubIdx) {
         const CheckParticipantCnt = await clubDao.selectIfFull(connection, clubIdx);
         const LikeStatus = await clubDao.selectIfClubFollowExist(connection, userIdx, clubIdx);
 
-        if(LikeStatus !== undefined){
-            if(CheckParticipantCnt[0].available === 1 && (LikeStatus.length <= 0)) {
+        console.log(CheckParticipantCnt[0], LikeStatus.length);
+
+        //기록이 존재하지 않을때
+        if(LikeStatus.length <= 0){
+
+            if(CheckParticipantCnt[0].available === 1) {
                 //참가 추가
                 const insertPostLikeResult = await clubDao.insertClubFollowInfo(connection, userIdx, clubIdx);
                 connection.commit();
                 return response(baseResponse.INSERT_CLUBFOLLOWING_SUCCESS);
-            }else if((CheckParticipantCnt[0].available === 0 || CheckParticipantCnt[0].available === 1) && LikeStatus[0].status === 'ACTIVE' ){
+            }else if(CheckParticipantCnt[0].available === 0){
+                //인원 초과로 참가 불가능
+                return response(baseResponse.TOOMUCH_PARTICIPANTS_ERROR);
+            }
+
+        }else{
+            //참가했던 기록이 있을 때
+
+            if((CheckParticipantCnt[0].available === 0 || CheckParticipantCnt[0].available === 1) && LikeStatus[0].status === 'ACTIVE' ){
                 //참가 취소
                 const updatePostLikeResult = await clubDao.updateClubFollowInfo(connection, userIdx, clubIdx, 'DELETED');
                 connection.commit();
@@ -253,16 +265,12 @@ exports.createClubFollowing = async function (userIdx, clubIdx) {
                 const updatePostLikeResult = await clubDao.updateClubFollowInfo(connection, userIdx, clubIdx, 'ACTIVE');
                 connection.commit();
                 return response(baseResponse.REINSERT_CLUBFOLLOWING_SUCCESS);
-            } else {
+            }else {
                 //참가 추가 불가
                 return response(baseResponse.TOOMUCH_PARTICIPANTS_ERROR);
             }
-        }else{
-            //참가 추가 불가
-            return response(baseResponse.TOOMUCH_PARTICIPANTS_ERROR);
+
         }
-
-
 
     }catch (err) {
 

@@ -84,7 +84,7 @@ exports.postKaKaoUsers = async function (req ,res) {
             const userEmail = {
                 email: result.kakao_account.email
             }
-
+            console.log('카카오 회원가입' + userEmail.email);
             Object.assign(accessTokenInfo, userEmail);
 
             //처리 속도를 맞추기 위한 if문.
@@ -129,7 +129,7 @@ exports.postAppleUsers = async function (req ,res) {
         return res.send(response(baseResponse.SIGNUP_EMAIL_EMPTY));
 
 
-
+    console.log('애플 회원가입' + accessTokenInfo.email);
     const signUpResponse = await userService.createUser('apple', userInfo, accessTokenInfo);
     return res.send(signUpResponse);
     // let code = auth._tokenGenerator.generate();
@@ -386,6 +386,7 @@ exports.kakaoLogin = async function (req, res) {
             const userEmail = {
                 email: result.kakao_account.email
             }
+            console.log('카카오 로그인' + userEmail.email);
             Object.assign(accessTokenInfo, userEmail);
             //처리 속도를 맞추기 위한 if문.
             if(userEmail.email){
@@ -419,7 +420,7 @@ exports.appleLogin = async function (req, res) {
             email: idToken.email,
             accessToken : code
         }
-
+        console.log('애플 로그인' + accessTokenInfo.email);
         const signUpResponse = await userService.postAppleSignIn(accessTokenInfo);
         return res.send(signUpResponse);
 
