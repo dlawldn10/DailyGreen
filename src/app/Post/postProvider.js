@@ -149,3 +149,4 @@ exports.retrieveSearchedPostList = async function (userIdx, page, limit, communi
     return postList;
 
 };
+

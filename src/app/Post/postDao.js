@@ -7,7 +7,7 @@ async function selectPostList(connection, userIdx, page, limit, communityIdx) {
         SELECT A.userIdx, A.nickname, A.profilePhotoUrl,
                P.postIdx, P.caption
         FROM Posts P
-        LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl FROM Users) A ON A.userIdx = P.userIdx
+                 LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl FROM Users) A ON A.userIdx = P.userIdx
         WHERE P.status = 'ACTIVE' AND P.communityIdx = ?
           AND P.userIdx not in (SELECT toUserIdx FROM BlockUsers WHERE fromUserIdx = ? )
           AND P.userIdx not in (SELECT fromUserIdx FROM BlockUsers WHERE toUserIdx = ? )
@@ -26,10 +26,10 @@ async function selectPostList(connection, userIdx, page, limit, communityIdx) {
 // 홈화면 포스팅 사진 리스트
 async function selectPostPhotoUrls(connection, postIdx) {
     const selectPostsQuery = `
-    SELECT PPU.url
-    FROM PostPhotoUrls PPU
-    WHERE PPU.postIdx = ? AND PPU.status = 'ACTIVE';
-  `;
+        SELECT PPU.url
+        FROM PostPhotoUrls PPU
+        WHERE PPU.postIdx = ? AND PPU.status = 'ACTIVE';
+    `;
 
     const selectPostPhotoRow = await connection.query(
         selectPostsQuery,
@@ -44,9 +44,9 @@ async function selectPostPhotoUrls(connection, postIdx) {
 // 게시물 좋아요 여부 리스트
 async function selectIfPostLiked(connection, userIdx, postIdx) {
     const selectPostsQuery = `
-    SELECT COUNT(*) as isPostLiked FROM PostLikes
+        SELECT COUNT(*) as isPostLiked FROM PostLikes
         WHERE status = 'ACTIVE' AND userIdx = ? AND postIdx = ?;
-  `;
+    `;
 
     const selectUserAccountRow = await connection.query(
         selectPostsQuery,
@@ -60,8 +60,8 @@ async function selectIfPostLiked(connection, userIdx, postIdx) {
 // 홈화면 게시물 좋아요 총 갯수
 async function selectAllPostLikes(connection, postIdx) {
     const selectPostsQuery = `
-    SELECT COUNT(*) as postLikeTotal FROM PostLikes WHERE postIdx = ? AND status = 'ACTIVE';
-  `;
+        SELECT COUNT(*) as postLikeTotal FROM PostLikes WHERE postIdx = ? AND status = 'ACTIVE';
+    `;
 
     const countPostLikes = await connection.query(
         selectPostsQuery,
@@ -75,8 +75,8 @@ async function selectAllPostLikes(connection, postIdx) {
 // 홈화면 댓글 총 갯수
 async function selectAllCommentsCount(connection, postIdx) {
     const countAllPostCommentsQuery = `
-    SELECT COUNT(*) as commentTotal FROM Comments WHERE postIdx = ? AND status = 'ACTIVE';
-  `;
+        SELECT COUNT(*) as commentTotal FROM Comments WHERE postIdx = ? AND status = 'ACTIVE';
+    `;
 
     const countAllPostCommentsRow = await connection.query(
         countAllPostCommentsQuery,
@@ -95,9 +95,9 @@ async function selectAllCommentsCount(connection, postIdx) {
 async function insertNewPost(connection, reqBody, userIdx) {
 
     const insertPostQuery = `
-    INSERT INTO Posts(communityIdx, userIdx, caption)
-    VALUES (?, ?, ?);
-  `;
+        INSERT INTO Posts(communityIdx, userIdx, caption)
+        VALUES (?, ?, ?);
+    `;
     const insertPostRow = await connection.query(
         insertPostQuery, [reqBody.communityIdx, userIdx, reqBody.caption]
     );
@@ -108,8 +108,8 @@ async function insertNewPost(connection, reqBody, userIdx) {
 //새로 생성된 postIdx 가져오기
 async function selectLastInsertedPost(connection) {
     const selectPostQuery = `
-    SELECT LAST_INSERT_ID() as postIdx FROM Posts;
-  `;
+        SELECT LAST_INSERT_ID() as postIdx FROM Posts;
+    `;
     const selectPostRow = await connection.query(
         selectPostQuery
     );
@@ -121,9 +121,9 @@ async function selectLastInsertedPost(connection) {
 //새 게시물 사진 리스트 올리기
 async function insertPostPhotoUrls(connection, postIdx, url) {
     const insertPostQuery = `
-    INSERT INTO PostPhotoUrls(postIdx, url)
-    VALUES (?, ?);
-  `;
+        INSERT INTO PostPhotoUrls(postIdx, url)
+        VALUES (?, ?);
+    `;
     const insertPostRow = await connection.query(
         insertPostQuery, [postIdx, url]
     );
@@ -173,8 +173,8 @@ async function selectTagByTagName(connection, tagName) {
 async function selectIfFollowing(connection, loginUserIdx, toUserIdx) {
 
     const selectIsFollowingQuery = `
-    SELECT COUNT(*) as isFollowing FROM UserFollowings
-    WHERE fromUserIdx = ? AND toUserIdx = ? AND status = 'ACTIVE' ;
+        SELECT COUNT(*) as isFollowing FROM UserFollowings
+        WHERE fromUserIdx = ? AND toUserIdx = ? AND status = 'ACTIVE' ;
     `;
 
     const selectIsFollowingRow = await connection.query(
@@ -295,7 +295,7 @@ async function selectCreatedPostList(connection, page, limit, userIdx) {
         SELECT A.userIdx, A.nickname, A.profilePhotoUrl,
                P.postIdx, P.communityIdx, P.caption
         FROM Posts P
-        LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl FROM Users) A ON A.userIdx = P.userIdx
+                 LEFT JOIN (SELECT userIdx, nickname, profilePhotoUrl FROM Users) A ON A.userIdx = P.userIdx
         WHERE P.status = 'ACTIVE' AND P.userIdx = ?
         ORDER BY P.updatedAt DESC LIMIT ? OFFSET ?;
     `;
@@ -312,10 +312,10 @@ async function selectCreatedPostList(connection, page, limit, userIdx) {
 // 홈화면 포스팅 사진 리스트
 async function selectCreatedPostPhotoUrls(connection, postIdx) {
     const selectPostsQuery = `
-    SELECT PPU.url
-    FROM PostPhotoUrls PPU
-    WHERE PPU.postIdx = ? AND PPU.status = 'ACTIVE';
-  `;
+        SELECT PPU.url
+        FROM PostPhotoUrls PPU
+        WHERE PPU.postIdx = ? AND PPU.status = 'ACTIVE';
+    `;
 
     const selectPostPhotoRow = await connection.query(
         selectPostsQuery,
@@ -348,7 +348,6 @@ async function selectSearchedPostList(connection, communityIdx, limit, page, key
     return selectClubListRow[0];
 
 }
-
 
 
 module.exports = {

@@ -9,8 +9,9 @@ const {errResponse} = require("../../../config/response");
 
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const {connect} = require("http2");
 const admin = require("firebase-admin");
-const serviceAccount = require('../../../secretKey/dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json');
+const serviceAccount = require("../../../dailygreen-6e49d-firebase-adminsdk-8g5gf-6d834b83b1.json");
 const stream = require("stream");
 
 let firebaseAdmin = admin;
@@ -69,7 +70,7 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
             });
 
             //유저 정보 가져오기
-            const userInfoRows = await userDao.selectSimpleUserProfile(connection, insertUserResult[0].insertId);
+            const userInfoRows = await userDao.selectUserInfo(connection, insertUserResult[0].insertId);
 
             //토큰 생성 Service
             let token = await jwt.sign(
@@ -85,7 +86,7 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
             );
 
             await connection.commit();
-
+            console.log(userInfoRows[0]);
 
             return response(baseResponse.SUCCESS, {
                 'userIdx': insertUserResult[0].insertId,
@@ -94,6 +95,8 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
                 'profilePhotoUrl': userInfoRows[0].profilePhotoUrl,
                 'jwt': token
             });
+
+
 
 
 
@@ -119,8 +122,6 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
         connection.release();
     }
 };
-
-
 
 
 
@@ -174,18 +175,18 @@ exports.postKakaoSignIn = async function (accessTokenInfo) {
 
 //애플 로그인
 exports.postAppleSignIn = async function (accessTokenInfo) {
-
     try {
         // 계정 존재 및 상태 확인
         const accountInfoRowParams = ['apple', accessTokenInfo.email];
         const accountInfoRows = await userProvider.accountCheck(accountInfoRowParams);
 
+        console.log(accessTokenInfo.email);
         if(accountInfoRows[0] === undefined){
             return {
                 isSuccess: false,
                 code: 3007,
                 message: "존재하지 않는 계정입니다. 회원가입을 진행해 주세요.",
-                email: "testEmail@email.com" };
+                email: accessTokenInfo.email.toString() };
         }
         else if (accountInfoRows[0].status === "INACTIVE") {
             return errResponse(baseResponse.SIGNIN_INACTIVE_ACCOUNT);

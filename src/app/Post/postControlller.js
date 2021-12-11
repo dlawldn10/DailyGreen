@@ -1,8 +1,11 @@
+const jwtMiddleware = require("../../../config/jwtMiddleware");
 const postProvider = require("../../app/Post/postProvider");
 const postService = require("../../app/Post/postService");
 const baseResponse = require("../../../config/baseResponseStatus");
 const {response, errResponse} = require("../../../config/response");
 
+const {emit} = require("nodemon");
+const clubProvider = require("../../app/Club/clubProvider");
 
 //게시물 올리기
 exports.postMyPost = async function (req, res) {
@@ -163,8 +166,6 @@ exports.getCreatedPostList = async function (req, res){
     return res.send(response(baseResponse.SUCCESS, retrievePostsResult));
 
 }
-
-
 
 //검색 피드 조회
 exports.getSearchedPostList = async function (req, res){
