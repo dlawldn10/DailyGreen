@@ -34,6 +34,7 @@ module.exports = function () {
     require('../src/app/Shop/shopRoute')(app);
     require('../src/app/Chat/chatRoute')(app);
     require('../src/app/Report/reportRoute')(app);
+    require('../src/app/Tmp/tmpRoute')(app);
 
     return app;
 };

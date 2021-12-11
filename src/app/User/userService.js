@@ -66,7 +66,8 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
 
             console.log({
                 userIdx: insertUserResult[0].insertId,
-                accountIdx: insertAccountResult[0].insertId
+                accountIdx: insertAccountResult[0].insertId,
+                profilePhotoUrl: uploadProfilePhotoResult[0]
             });
 
             //유저 정보 가져오기
@@ -92,7 +93,7 @@ exports.createUser = async function (sort, userInfo, accessTokenInfo) {
                 'userIdx': insertUserResult[0].insertId,
                 'accountIdx': insertAccountResult[0].insertId,
                 'nickname': userInfoRows[0].nickname,
-                'profilePhotoUrl': userInfoRows[0].profilePhotoUrl,
+                'profilePhotoUrl': uploadProfilePhotoResult[0],
                 'jwt': token
             });
 
@@ -362,6 +363,38 @@ exports.deleteUser = async function (userIdx) {
 
 
 async function uploadToFirebaseStorage(connection, userInfo, userIdx) {
+    // //사진 업로드
+    // const bufferStream = new stream.PassThrough();
+    // bufferStream.end(new Buffer.from(userInfo.profilePhoto.buffer, 'ascii'));
+    // const fileName = Date.now() + `_${userIdx}`;
+    //
+    // const file = firebaseAdmin.storage().bucket().file('Users/ProfileImage/' + fileName);
+    //
+    // bufferStream.pipe(file.createWriteStream({
+    //
+    //     metadata: {contentType: userInfo.profilePhoto.mimetype}
+    //
+    // })).on('error', (eer) => {
+    //
+    //     console.log(eer);
+    //
+    // }).on('finish', () => {
+    //
+    //     console.log(fileName + " finish");
+    //     //업로드한 사진 url다운
+    //     const config = {action: "read", expires: '03-17-2030'};
+    //     file.getSignedUrl(config,
+    //         async (err, url) => {
+    //             if (err) {
+    //                 console.log(err);
+    //             }
+    //
+    //             const insertProfilePhotoUrlRow = await userDao.insertProfilePhotoUrl(connection, url, userIdx);
+    //
+    //         });
+    // });
+
+
     //사진 업로드
     const bufferStream = new stream.PassThrough();
     bufferStream.end(new Buffer.from(userInfo.profilePhoto.buffer, 'ascii'));
@@ -369,30 +402,17 @@ async function uploadToFirebaseStorage(connection, userInfo, userIdx) {
 
     const file = firebaseAdmin.storage().bucket().file('Users/ProfileImage/' + fileName);
 
-    bufferStream.pipe(file.createWriteStream({
-
+    await bufferStream.pipe(file.createWriteStream({
         metadata: {contentType: userInfo.profilePhoto.mimetype}
-
     })).on('error', (eer) => {
-
         console.log(eer);
-
-    }).on('finish', () => {
-
-        console.log(fileName + " finish");
-        //업로드한 사진 url다운
-        const config = {action: "read", expires: '03-17-2030'};
-        file.getSignedUrl(config,
-            async (err, url) => {
-                if (err) {
-                    console.log(err);
-                }
-
-                const insertProfilePhotoUrlRow = await userDao.insertProfilePhotoUrl(connection, url, userIdx);
-
-            });
     });
 
+    const config = {action: "read", expires: '03-17-2030'};
+    const url = await file.getSignedUrl(config);
+    console.log(url);
+
+    return url;
 }
 
 

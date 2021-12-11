@@ -44,7 +44,7 @@ exports.createClub = async function (userIdxFromJWT, clubInfo) {
             const insertClubPhotoResult = await clubDao.insertClubPhotoUrl(connection, clubIdx, userIdxFromJWT, defaultUrl);
         }else{
             //사진 게시
-            const insertClubPhotoResult = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx);
+            resultResponse = await uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx);
         }
 
         if (clubInfo.isRegular == 0) {
@@ -169,9 +169,9 @@ exports.updateClub = async function (userIdxFromJWT, clubInfo) {
 //파이어베이스 업로드
 async function uploadToFirebaseStorage(connection, resultResponse, clubInfo, userIdxFromJWT, clubIdx) {
     //사진 업로드
-    let clubPhotoUrlList = [];
     for (let i = 0; i < clubInfo.clubPhotoList.length; i++) {
 
+        //사진 업로드
         const bufferStream = new stream.PassThrough();
         bufferStream.end(new Buffer.from(clubInfo.clubPhotoList[i].buffer, 'ascii'));
         const fileName = Date.now() + `_${clubIdx}` + `_${i + 1}`;
@@ -179,42 +179,19 @@ async function uploadToFirebaseStorage(connection, resultResponse, clubInfo, use
         const file = firebaseAdmin.storage().bucket().file('Clubs/ClubImages/' + fileName);
 
         await bufferStream.pipe(file.createWriteStream({
-
             metadata: {contentType: clubInfo.clubPhotoList[i].mimetype}
-
         })).on('error', (eer) => {
-
             console.log(eer);
-
-        }).on('finish', () => {
-
-            console.log(fileName + " finish");
-            //업로드한 사진 url다운
-            const config = {action: "read", expires: '03-17-2030'};
-            file.getSignedUrl(config,
-                async (err, url) => {
-                    if (err) {
-                        console.log(err);
-                        connection.rollback();
-                        resultResponse = errResponse(baseResponse.FIREBASE_ERROR);
-                        return resultResponse;
-                    }
-
-                    clubPhotoUrlList = await pushToList(clubPhotoUrlList, url);
-
-
-                    if (clubPhotoUrlList.length === clubInfo.clubPhotoList.length) {
-                        //타이밍 맞추기 위한 if문.
-                        delete clubInfo.clubPhotoList;
-
-                        //사진들 넣기
-                        for (let i = 0; i < clubPhotoUrlList.length; i++) {
-                            const insertClubPhotoUrlRow = await clubDao.insertClubPhotoUrl(connection, clubIdx, userIdxFromJWT, clubPhotoUrlList[i]);
-                        }
-
-                    }
-                });
+            connection.rollback();
+            resultResponse = errResponse(baseResponse.FIREBASE_ERROR);
+            return resultResponse;
         });
+
+        const config = {action: "read", expires: '03-17-2030'};
+        const url = await file.getSignedUrl(config);
+        console.log(url);
+        const insertClubPhotoUrlRow = await clubDao.insertClubPhotoUrl(connection, clubIdx, userIdxFromJWT, url);
+
     }
 
     return resultResponse;
