@@ -94,7 +94,7 @@ exports.postClub = async function (req, res) {
 //모임탭 조회
 exports.getClubList = async function (req, res){
 
-    let page = req.query.page;
+    let lastClubIdx = req.query.lastClubIdx;
     const communityIdx = req.params.communityIdx;
     const userIdxFromJWT = req.verifiedToken.userIdx;
 
@@ -105,20 +105,17 @@ exports.getClubList = async function (req, res){
     else if (!communityIdx)
         return res.send(errResponse(baseResponse.COMMUNITYIDX_EMPTY));
 
-    if(limit-page < 0){
+    if(limit-lastClubIdx < 0){
 
-        page = 0;
+        lastClubIdx = 0;
 
-    }else if(page == 0 || !page){
+    }else if(!lastClubIdx) {
 
         return res.send(errResponse(baseResponse.PAGECOUNT_WRONG));
-    }else{
-
-        page = (page-1)*limit
 
     }
 
-    const postsFromFollowingUsers = await clubProvider.retrieveClubList(userIdxFromJWT, page, limit, communityIdx);
+    const postsFromFollowingUsers = await clubProvider.retrieveClubList(userIdxFromJWT, lastClubIdx, limit, communityIdx);
     return res.send(response(baseResponse.SUCCESS, postsFromFollowingUsers));
 
 }

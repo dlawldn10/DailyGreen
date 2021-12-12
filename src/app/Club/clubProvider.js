@@ -6,12 +6,17 @@ const {errResponse, response} = require("../../../config/response");
 const baseResponse = require("../../../config/baseResponseStatus");
 
 
-exports.retrieveClubList = async function (userIdx, page, limit, communityIdx) {
+exports.retrieveClubList = async function (userIdx, lastClubIdx, limit, communityIdx) {
 
     const connection = await pool.getConnection(async (conn) => conn);
     connection.beginTransaction();
 
-    const clubListResult = await clubDao.selectClubList(connection, communityIdx, userIdx, limit, page);
+    if(lastClubIdx == 0){
+        const maxClubIdxResult = await clubDao.selectMaxClubIdx(connection);
+        lastClubIdx = maxClubIdxResult[0].maxClubIdx + 1;
+    }
+
+    const clubListResult = await clubDao.selectClubList(connection, communityIdx, userIdx, limit, lastClubIdx);
 
     let clubList = [];
     for(let i = 0; i<clubListResult.length; i++){

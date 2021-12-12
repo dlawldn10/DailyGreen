@@ -24,7 +24,6 @@ const auth = new AppleAuth({
     "scope": "email",
     "response_mode" : "form_post"
 }, path.join(__dirname, `../../../secretKey/AuthKey_7DQH2L92P5.p8`));
-const appleSignin = require('apple-signin-auth');
 
 // res.redirect('download?imgName=' + image.originalname);
 
