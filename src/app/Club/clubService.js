@@ -198,6 +198,7 @@ async function uploadToFirebaseStorage(connection, resultResponse, clubInfo, use
 }
 
 
+
 async function pushToList(postPhotoUrlList, url){
     postPhotoUrlList.push(url);
     return postPhotoUrlList;
@@ -282,8 +283,13 @@ exports.deleteClub = async function (userIdx, clubIdx) {
         }
 
         const deleteClubTagsResult = await clubDao.deleteClubTags(connection, clubIdx);
-        connection.commit();
-        return response(baseResponse.DELETE_CLUB_SUCCESS);
+        if(deleteClubTagsResult === 1){
+            connection.commit();
+            return response(baseResponse.DELETE_CLUB_SUCCESS);
+        }else{
+            connection.rollback();
+            return errResponse(baseResponse.DB_ERROR);
+        }
 
     }catch (err) {
 

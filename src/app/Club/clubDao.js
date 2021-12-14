@@ -487,7 +487,7 @@ async function deleteClubTags(connection, clubIdx) {
         clubIdx
     );
 
-    return insertStoryTagRow[0];
+    return 1;
 }
 
 

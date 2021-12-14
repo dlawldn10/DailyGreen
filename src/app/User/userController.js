@@ -24,6 +24,7 @@ const auth = new AppleAuth({
     "scope": "email",
     "response_mode" : "form_post"
 }, path.join(__dirname, `../../../secretKey/AuthKey_7DQH2L92P5.p8`));
+const appleSignin = require('apple-signin-auth');
 
 // res.redirect('download?imgName=' + image.originalname);
 
@@ -132,57 +133,6 @@ exports.postAppleUsers = async function (req ,res) {
     return res.send(signUpResponse);
 
 
-    // console.log(req.body);
-    // let code = req.body.accessToken;
-    // let code = req.body.code;
-    // console.log(code);
-    // console.log(accessToken);
-
-    // if (!code) {
-    //     return res.send(response(baseResponse.SIGNUP_APPLE_ACCESSTOKEN_EMPTY));
-    // }
-    //
-    // console.log(code);
-
-    // try {
-    //
-    //
-    //     // console.log(auth);
-    //     const TokenResponse = await auth.accessToken(code);
-    //     const idToken = jwt.decode(TokenResponse.id_token);
-    //
-    //     const accessTokenInfo = {
-    //         email: idToken.email
-    //     }
-    //
-    //     const userInfo = {
-    //         password: 'tmpPassword',
-    //         phoneNum: '00000000000',
-    //         profilePhoto: req.file,
-    //         nickname: req.body.nickname,
-    //         bio: req.body.bio
-    //     }
-    //
-    //
-    //     // 빈 값 체크
-    //     if (!userInfo.nickname)
-    //         return res.send(response(baseResponse.SIGNUP_NICKNAME_EMPTY));
-    //     else if (!userInfo.bio)
-    //         return res.send(response(baseResponse.SIGNUP_BIO_EMPTY));
-    //     else if (!accessTokenInfo.email)
-    //         return res.send(response(baseResponse.FAILED_GETIING_APPLE_EMAIL));
-    //     else if (!userInfo.profilePhoto)
-    //         return res.send(response(baseResponse.SIGNUP_PROFILEPHOTO_EMPTY));
-    //
-    //
-    //
-    //     const signUpResponse = await userService.createUser('apple', userInfo, accessTokenInfo);
-    //     return res.send(signUpResponse);
-    //
-    // } catch (ex) {
-    //     console.error(ex);
-    //     res.send(baseResponse.APPLE_AUTH_ERROR);
-    // }
 
 
 };
@@ -199,6 +149,8 @@ exports.postNicknameCheck = async function (req, res) {
     // 길이 체크
     if (nickname.length > 8)
         return res.send(response(baseResponse.SIGNUP_NICKNAME_LENGTH));
+
+    console.log('닉네임 중복체크');
 
     const nicknameCheckResponse = await userProvider.nicknameCheck(nickname);
 
@@ -295,7 +247,7 @@ exports.postPhoneNumberVerify = async function (req, res){
     }
 
     Cache.del(phoneNumber);
-
+    console.log('인증번호 확인됨');
     return res.send(response(baseResponse.VERIFY_PHONENUMBER_SUCCESS));
 }
 
@@ -382,6 +334,8 @@ exports.getEvents = async function (req, res) {
     if (!userIdxFromJWT)
         return res.send(response(baseResponse.TOKEN_EMPTY));
 
+    console.log(userIdxFromJWT + ': ' + '이벤트 배너 조회');
+
     const retrieveEventsResponse = await userProvider.retrieveEvents(userIdxFromJWT);
     return res.send(response(baseResponse.SUCCESS, retrieveEventsResponse));
 
@@ -400,6 +354,8 @@ exports.patchUserStatus = async function (req, res) {
         return res.send(response(baseResponse.TOKEN_EMPTY));
     else if (!userIdx)
         return res.send(response(baseResponse.USERIDX_EMPTY));
+
+    console.log(userIdxFromJWT + ': ' + '회원 탈퇴');
 
     const deleteUserResult = await userService.deleteUser(userIdx);
     return res.send(deleteUserResult);
@@ -449,10 +405,12 @@ exports.postOriginUser = async function (req ,res) {
     if (!regexEmail.test(accessTokenInfo.email))
         return res.send(response(baseResponse.SIGNUP_EMAIL_TYPE_ERROR));
 
-    // 전화번호 형식(길이) 체크
-    if (userInfo.phoneNum.length > 11 || /^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}/.test(userInfo.phoneNum))
-        return res.send(response(baseResponse.SIGNUP_PHONENUM_TYPE_ERROR));
+    // // 전화번호 형식(길이) 체크
+    // if (userInfo.phoneNum.length > 11 || /^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}/.test(userInfo.phoneNum))
+    //     return res.send(response(baseResponse.SIGNUP_PHONENUM_TYPE_ERROR));
 
+
+    console.log('이메일 회원가입');
 
     const signUpResponse = await userService.createUser('origin', userInfo, accessTokenInfo);
     return res.send(signUpResponse);
@@ -478,10 +436,13 @@ exports.originLogin = async function (req, res) {
         return res.send(response(baseResponse.SIGNUP_EMAIL_EMPTY));
 
 
+
     // 이메일 형식 체크 (by 정규표현식)
     if (!regexEmail.test(userInfo.email))
         return res.send(response(baseResponse.SIGNUP_EMAIL_TYPE_ERROR));
 
+
+    console.log('이메일 로그인');
 
     const logInResponse = await userService.postOriginSignIn(userInfo);
     return res.send(logInResponse);
@@ -503,6 +464,8 @@ exports.getMyPage = async function (req, res) {
     else if (!targetUserIdx)
         return res.send(response(baseResponse.USERIDX_EMPTY));
 
+    console.log(userIdxFromJWT + ': ' + '마이페이지 조회');
+
     const retrieveEventsResponse = await userProvider.retrieveMyPage(targetUserIdx);
     return res.send(response(baseResponse.SUCCESS, retrieveEventsResponse));
 
@@ -521,7 +484,7 @@ exports.patchUserProfile = async function (req ,res) {
     }
 
 
-
+    console.log(userIdxFromJWT + ': ' + '회원정보 수정');
     const signUpResponse = await userService.patchUser(userInfo);
     return res.send(signUpResponse);
 

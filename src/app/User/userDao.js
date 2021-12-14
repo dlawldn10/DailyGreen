@@ -94,8 +94,8 @@ async function insertAccountInfo(connection, insertAccountInfoParams) {
 async function insertFollows(connection, from, to) {
   console.log(from, to);
   const insertFollowInfoQuery = `
-    INSERT INTO UserFollowings( fromUserIdx, toUserIdx) VALUES (?, ?);
-  `;
+        INSERT INTO UserFollowings( fromUserIdx, toUserIdx) VALUES (?, ?);
+`;
   const insertFollowInfoRow = await connection.query(
       insertFollowInfoQuery,
       [from, to]
@@ -109,9 +109,9 @@ async function insertFollows(connection, from, to) {
 // 유저 계정 상태 체크
 async function selectUserAccount(connection, accountInfoRowParams) {
   const selectUserAccountQuery = `
-    SELECT status, userIdx, accountIdx, password
-    FROM Accounts
-    WHERE sort = ? AND email = ?;`;
+        SELECT status, userIdx, accountIdx, password
+        FROM Accounts 
+        WHERE sort = ? AND email = ?;`;
   const selectUserAccountRow = await connection.query(
       selectUserAccountQuery,
       accountInfoRowParams
@@ -125,10 +125,10 @@ async function selectUserAccount(connection, accountInfoRowParams) {
 // 간단 프로필 정보 가져오기 = 닉네임, 프사
 async function selectSimpleUserProfile(connection, userIdx) {
   const selectUserAccountQuery = `
-    SELECT nickname, profilePhotoUrl
-    FROM Users
-    WHERE userIdx = ?;
-  `;
+        SELECT nickname, profilePhotoUrl
+        FROM Users 
+        WHERE userIdx = ?;
+        `;
   const selectUserAccountRow = await connection.query(
       selectUserAccountQuery,
       userIdx
@@ -219,18 +219,18 @@ async function selectCloseClubs(connection) {
            C.locationDetail,
            CONCAT(date_format(C.when, '%Y.%m.%d '),
                   case WEEKDAY(C.\`when\`)
-                    when '0' then '월요일'
-                    when '1' then '화요일'
-                    when '2' then '수요일'
-                    when '3' then '목요일'
-                    when '4' then '금요일'
-                    when '5' then '토요일'
-                    when '6' then '일요일'
-                    end, ' ',
+                      when '0' then '월요일'
+                      when '1' then '화요일'
+                      when '2' then '수요일'
+                      when '3' then '목요일'
+                      when '4' then '금요일'
+                      when '5' then '토요일'
+                      when '6' then '일요일'
+                      end, ' ',
                   case date_format(C.when, '%p')
-                    when 'PM' then '오후'
-                    when 'AM' then '오전'
-                    end, ' ',
+                      when 'PM' then '오후'
+                      when 'AM' then '오전'
+                      end, ' ',
                   date_format(C.when, '%l시'),
                   if(STRCMP(date_format(C.\`when\`, '%i'), '00') = 0, '',
                      date_format(C.\`when\`, ' %i분')))     as \`when\`,
@@ -238,11 +238,11 @@ async function selectCloseClubs(connection) {
            CPU.url as photo,
            if(C.isRegular = 0 AND TN.table_name = 'Clubs', '모임', '정기모임') as type
     FROM Clubs C
-           LEFT JOIN (SELECT clubIdx, url FROM ClubPhotoUrls GROUP BY clubIdx) CPU on C.clubIdx = CPU.clubIdx
-           INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Clubs%') TN
+             LEFT JOIN (SELECT clubIdx, url FROM ClubPhotoUrls GROUP BY clubIdx) CPU on C.clubIdx = CPU.clubIdx
+            INNER JOIN (SELECT table_name FROM information_schema.TABLES WHERE TABLE_SCHEMA = SCHEMA() AND table_name LIKE '%Clubs%') TN
     WHERE C.status = 'ACTIVE' AND DATEDIFF(date(C.\`when\`), now()) > 0
-    ORDER BY Dday ASC LIMIT 3 OFFSET 0;
-  `;
+ORDER BY Dday ASC LIMIT 3 OFFSET 0;
+        `;
   const selectUserAccountRow = await connection.query(
       selectUserAccountQuery
   );
@@ -270,9 +270,9 @@ async function insertProfilePhotoUrl(connection, photoUrl, userIdx) {
 // 패스워드 체크
 async function selectUserPassword(connection, selectUserPasswordParams) {
   const selectUserPasswordQuery = `
-    SELECT password
-    FROM Accounts
-    WHERE userIdx = ? AND accountIdx = ?;`;
+        SELECT password
+        FROM Accounts 
+        WHERE userIdx = ? AND accountIdx = ?;`;
   const selectUserPasswordRow = await connection.query(
       selectUserPasswordQuery,
       selectUserPasswordParams
@@ -286,7 +286,7 @@ async function selectUserPassword(connection, selectUserPasswordParams) {
 async function selectMyPage(connection, userIdx) {
   const selectMyPageQuery = `
     SELECT userIdx, nickname, profilePhotoUrl, bio FROM Users WHERE userIdx = ?;
-  `;
+    `;
 
   const selectMyPageRow = await connection.query(selectMyPageQuery, userIdx);
 
@@ -417,7 +417,7 @@ async function selectParticipatingEvents(connection, userIdx) {
                      ON C.clubIdx = CF.toClubIdx
     WHERE fromUserIdx = ? AND CF.status = 'ACTIVE'
     ORDER BY Dday ASC;
-    `;
+  `;
   const selectMyPageRow = await connection.query(
       selectMyPageQuery,
       userIdx
@@ -524,7 +524,7 @@ async function selectCreatedEvents(connection, userIdx) {
       AND C.status = 'ACTIVE'
     GROUP BY idx
     ORDER BY Dday ASC;
-`;
+  `;
   const selectMyPageRow = await connection.query(
       selectMyPageQuery,
       userIdx
@@ -536,9 +536,9 @@ async function selectCreatedEvents(connection, userIdx) {
 // 유저 정보 불러오기
 async function selectUserInfo(connection, userIdx) {
   const selectUserPasswordQuery = `
-        SELECT profilePhotoUrl, nickname, bio
-        FROM Users 
-        WHERE userIdx = ?`;
+    SELECT profilePhotoUrl, nickname, bio
+    FROM Users
+    WHERE userIdx = ?`;
   const selectUserPasswordRow = await connection.query(
       selectUserPasswordQuery,
       userIdx
