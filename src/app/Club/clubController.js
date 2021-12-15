@@ -132,7 +132,7 @@ exports.getClub = async function (req, res){
         return res.send(errResponse(baseResponse.CLUBIDX_EMPTY));
 
     const retrieveClubResult = await clubProvider.retrieveClub(userIdxFromJWT, clubIdx);
-    return res.send(response(baseResponse.SUCCESS, retrieveClubResult));
+    return res.send(retrieveClubResult);
 
 }
 

@@ -64,6 +64,16 @@ exports.retrieveClub = async function (userIdx, clubIdx) {
     const connection = await pool.getConnection(async (conn) => conn);
     connection.beginTransaction();
 
+    //TODO: 상세정보 조회눌렀는데 그 사이에 모임이 삭제될 수도 있으니
+    // 조회하고자 하는 모임이 ACTIVE 상태인지 validation처리 필요
+
+    // 모임 존재 및 상태 확인
+    const clubInfoResult = await clubDao.selectClubStatusByClubIdx(connection, clubIdx);
+
+    if (clubInfoResult[0].status === "DELETED") {
+        return errResponse(baseResponse.INVALID_CLUBINFO);
+    }
+
     //모임 정보
     const clubResult = await clubDao.selectClubByClubIdx(connection, clubIdx);
 
@@ -116,7 +126,7 @@ exports.retrieveClub = async function (userIdx, clubIdx) {
 
     connection.release();
 
-    return Result;
+    return response(baseResponse.SUCCESS, Result);
 
 }
 

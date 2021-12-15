@@ -258,6 +258,21 @@ async function selectClubByClubIdx(connection, clubIdx){
 
 }
 
+async function selectClubStatusByClubIdx(connection, clubIdx){
+
+    const selectClubQuery = `
+        SELECT status FROM Clubs WHERE clubIdx = ?;
+    `;
+
+    const selectClubRow = await connection.query(
+        selectClubQuery,
+        clubIdx
+    );
+
+    return selectClubRow[0];
+
+}
+
 //모임 상세 조회 - 참여중인 모든 사람들의 프사와 닉네임
 async function selectFollowingUsersProfile(connection, clubIdx) {
 
@@ -608,6 +623,7 @@ module.exports = {
     selectClubType,
     selectSearchedClubList,
     selectIfFull,
-    selectMaxClubIdx
+    selectMaxClubIdx,
+    selectClubStatusByClubIdx
 
 };

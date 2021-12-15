@@ -115,6 +115,8 @@ module.exports = {
     COMMUNITY_UNFOLLOW_ERROR : { "isSuccess": false, "code": 3011, "message": "이미 해당 커뮤니티에 참여하고 있지 않습니다." },
     PHONE_NUMBER_SMS_ERROR : { "isSuccess": false, "code": 3012, "message": "SMS 문자 전송에 실패하였습니다." },
     FAILED_GETIING_APPLE_EMAIL: { "isSuccess": false, "code": 3013, "message": "애플 이메일 가져오기 실패" },
+    INVALID_CLUBINFO: { "isSuccess": false, "code": 3014, "message": "이미 삭제됐거나 완료된 모임입니다." },
+
 
     //Connection, Transaction 등의 서버 오류
     DB_ERROR : { "isSuccess": false, "code": 4000, "message": "데이터 베이스 에러"},
