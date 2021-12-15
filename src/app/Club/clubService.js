@@ -52,7 +52,7 @@ exports.createClub = async function (userIdxFromJWT, clubInfo) {
             //태그 게시 없이 바로 리턴
 
             await connection.commit();
-            connection.release();
+            await connection.release();
 
             return resultResponse;
         }
@@ -87,7 +87,7 @@ exports.createClub = async function (userIdxFromJWT, clubInfo) {
         logger.error(`App - createClub Service error\n: ${err.message} \n${JSON.stringify(err)}`);
         return errResponse(baseResponse.DB_ERROR);
     }finally {
-        connection.release();
+        await connection.release();
     }
 
 
@@ -148,7 +148,7 @@ exports.updateClub = async function (userIdxFromJWT, clubInfo) {
 
 
 
-        connection.commit();
+        await connection.commit();
         return resultResponse;
 
 
@@ -160,7 +160,7 @@ exports.updateClub = async function (userIdxFromJWT, clubInfo) {
 
     }finally {
 
-        connection.release();
+        await connection.release();
 
     }
 }
@@ -223,7 +223,7 @@ exports.createClubFollowing = async function (userIdx, clubIdx) {
             if(CheckParticipantCnt[0].available === 1) {
                 //참가 추가
                 const insertPostLikeResult = await clubDao.insertClubFollowInfo(connection, userIdx, clubIdx);
-                connection.commit();
+                await connection.commit();
                 return response(baseResponse.INSERT_CLUBFOLLOWING_SUCCESS);
             }else if(CheckParticipantCnt[0].available === 0){
                 //인원 초과로 참가 불가능
@@ -236,12 +236,12 @@ exports.createClubFollowing = async function (userIdx, clubIdx) {
             if((CheckParticipantCnt[0].available === 0 || CheckParticipantCnt[0].available === 1) && LikeStatus[0].status === 'ACTIVE' ){
                 //참가 취소
                 const updatePostLikeResult = await clubDao.updateClubFollowInfo(connection, userIdx, clubIdx, 'DELETED');
-                connection.commit();
+                await connection.commit();
                 return response(baseResponse.CANCEL_CLUBFOLLOWING_SUCCESS);
             }else if(CheckParticipantCnt[0].available === 1 && LikeStatus[0].status === 'DELETED'){
                 //다시 참가 추가
                 const updatePostLikeResult = await clubDao.updateClubFollowInfo(connection, userIdx, clubIdx, 'ACTIVE');
-                connection.commit();
+                await connection.commit();
                 return response(baseResponse.REINSERT_CLUBFOLLOWING_SUCCESS);
             }else {
                 //참가 추가 불가
@@ -258,7 +258,7 @@ exports.createClubFollowing = async function (userIdx, clubIdx) {
 
     }finally {
 
-        connection.release();
+        await connection.release();
 
     }
 }
@@ -278,18 +278,13 @@ exports.deleteClub = async function (userIdx, clubIdx) {
         const clubTypeResult = await clubDao.selectClubType(connection, clubIdx);
 
         if(clubTypeResult[0].isRegular == 0){
-            connection.commit();
+            await connection.commit();
             return response(baseResponse.DELETE_CLUB_SUCCESS);
         }
 
         const deleteClubTagsResult = await clubDao.deleteClubTags(connection, clubIdx);
-        if(deleteClubTagsResult === 1){
-            connection.commit();
-            return response(baseResponse.DELETE_CLUB_SUCCESS);
-        }else{
-            connection.rollback();
-            return errResponse(baseResponse.DB_ERROR);
-        }
+        await connection.commit();
+        return response(baseResponse.DELETE_CLUB_SUCCESS);
 
     }catch (err) {
 
@@ -299,7 +294,7 @@ exports.deleteClub = async function (userIdx, clubIdx) {
 
     }finally {
 
-        connection.release();
+        await connection.release();
 
     }
 }
