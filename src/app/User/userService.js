@@ -22,9 +22,6 @@ if (!admin.apps.length) {
     });
 }
 
-// Service: Create, Update, Delete 비즈니스 로직 처리
-
-
 
 //회원가입
 exports.createUser = async function (sort, userInfo, accessTokenInfo) {

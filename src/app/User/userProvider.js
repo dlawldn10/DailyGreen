@@ -57,6 +57,19 @@ exports.retrieveEvents = async function (userIdx) {
   return selectCloseCommunityResult;
 };
 
+//홈화면 - 외부 광고 배너
+exports.retrieveAds = async function (userIdx) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  await connection.beginTransaction();
+  const selectCloseCommunityResult = await userDao.selectAds(connection);
+  await connection.commit();
+  await connection.release();
+
+  return selectCloseCommunityResult;
+};
+
+
+
 //비밀번호 체크
 exports.passwordCheck = async function (selectUserPasswordParams) {
   const connection = await pool.getConnection(async (conn) => conn);

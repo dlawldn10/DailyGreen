@@ -44,6 +44,9 @@ module.exports = function(app){
     //홈화면 - 이벤트 배너
     app.get('/app/users/events', jwtMiddleware, upload.none(), user.getEvents);
 
+    //홈화면 - 외부 광고 배너
+    app.get('/app/ads', jwtMiddleware, upload.none(), user.getAds);
+
 
 
     //마이페이지

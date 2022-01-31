@@ -250,6 +250,18 @@ ORDER BY Dday ASC LIMIT 3 OFFSET 0;
 
 };
 
+//외부 광고 사진들 리스트
+async function selectAds(connection) {
+  const selectUserAccountQuery = `
+    SELECT addIdx, addUrl, linkedUrl FROM Adds WHERE status = 'ACTIVE' LIMIT 3;
+        `;
+  const selectUserAccountRow = await connection.query(
+      selectUserAccountQuery
+  );
+  return selectUserAccountRow[0];
+
+};
+
 
 
 // 프사 삽입
@@ -566,6 +578,7 @@ module.exports = {
   updateUserStatus,
   updateAccountStatus,
   selectCreatedEvents,
-  selectCloseClubs
+  selectCloseClubs,
+  selectAds
 
 };

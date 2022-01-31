@@ -342,6 +342,23 @@ exports.getEvents = async function (req, res) {
 
 };
 
+//홈화면 - 외부 광고 배너
+exports.getAds = async function (req, res) {
+
+    const userIdxFromJWT = req.verifiedToken.userIdx;
+
+    // 빈 값 체크
+    if (!userIdxFromJWT)
+        return res.send(response(baseResponse.TOKEN_EMPTY));
+
+    console.log(userIdxFromJWT + ': ' + '외부 광고 배너 조회');
+
+    const retrieveAdsResponse = await userProvider.retrieveAds(userIdxFromJWT);
+    return res.send(response(baseResponse.SUCCESS, retrieveAdsResponse));
+
+
+};
+
 
 //회원 탈퇴
 exports.patchUserStatus = async function (req, res) {
