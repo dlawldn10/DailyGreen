@@ -31,13 +31,6 @@ const appleSignin = require('apple-signin-auth');
 //카카오 회원가입
 exports.postKaKaoUsers = async function (req ,res) {
 
-    //소셜 아이디 회원가입인 경우
-    //1. 일단 req.body 데이터를 모두 받고
-    //2. 받은 accesstoken을 이용해서 카카오에서 회원 정보 가져오기
-    //3. 프사 업로드하고
-    //4. 계정 생성
-
-
     const userInfo = {
         password: 'tmpPassword',
         phoneNum: '00000000000',
@@ -501,7 +494,7 @@ exports.patchUserProfile = async function (req ,res) {
     }
 
 
-    console.log(userIdxFromJWT + ': ' + '회원정보 수정');
+    console.log(userInfo.userIdx + ': ' + '회원정보 수정');
     const signUpResponse = await userService.patchUser(userInfo);
     return res.send(signUpResponse);
 

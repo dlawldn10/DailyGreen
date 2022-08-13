@@ -172,47 +172,37 @@ async function uploadToFirebaseStorage(connection, resultResponse, reqBody, user
         })).on('error', (eer) => {
 
             console.log(eer);
+            connection.rollback();
+            return errResponse(baseResponse.FIREBASE_ERROR);
 
-        }).on('finish', () => {
-
-            console.log(fileName + " finish");
-            //업로드한 사진 url다운
-            const config = {action: "read", expires: '03-17-2030'};
-            file.getSignedUrl(config,
-                async (err, url) => {
-                    if (err) {
-                        console.log(err);
-                        connection.rollback();
-                        resultResponse = errResponse(baseResponse.FIREBASE_ERROR);
-                        return resultResponse;
-                    }
-
-                    postPhotoUrlList = await pushToList(postPhotoUrlList, url);
-
-                    console.log(postPhotoUrlList.length);
-                    console.log(reqBody.postPhotoList.length);
-
-
-                    if (postPhotoUrlList.length == reqBody.postPhotoList.length) {
-                        //타이밍 맞추기 위한 if문.
-                        delete reqBody.postPhotoList;
-
-                        //사진들 넣기
-                        for (let i = 0; i < postPhotoUrlList.length; i++) {
-                            const insertClubPhotoUrlRow = await postDao.insertPostPhotoUrls(connection,
-                                postIdx,
-                                postPhotoUrlList[i]);
-                        }
-
-                    }
-                });
         });
+
+        //업로드한 사진 url다운
+        const config = {action: "read", expires: '03-17-2030'};
+        const url = await file.getSignedUrl(config);
+
+        // console.log(postPhotoUrlList.length);
+        // console.log(reqBody.postPhotoList.length);
+        console.log(postIdx);
+        console.log(url);
+
+        const insertClubPhotoUrlRow = await postDao.insertPostPhotoUrls(connection, postIdx, url);
+
+        // const insertClubPhotoUrlRow = await postDao.insertPostPhotoUrls(connection, postIdx, postPhotoUrlList[i]);
+
+        // postPhotoUrlList.push(url);
+
+        // //타이밍 맞추기 위한 if문.
+        // if (postPhotoUrlList.length === reqBody.postPhotoList.length) {
+        //
+        //     //사진들 넣기
+        //     for (let i = 0; i < postPhotoUrlList.length; i++) {
+        //
+        //     }
+        //
+        // }
     }
 
     return resultResponse;
 }
 
-async function pushToList(postPhotoUrlList, url){
-    postPhotoUrlList.push(url);
-    return postPhotoUrlList;
-}
